@@ -33,7 +33,7 @@ jobs:
         run: flutter pub get
         
       - name: Build Windows
-        run: flutter build windows
+        run: flutter build windows --build-name=$env:APP_VERSION --build-number=$env:GITHUB_RUN_NUMBER
         
       - name: Compile Inno Setup Installer
         uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
