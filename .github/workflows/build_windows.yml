@@ -1,19 +1,29 @@
-name: Build Windows Release
+name: Build & Auto-Publish Release
 
 on:
   push:
     branches: [ "main", "master" ]
   workflow_dispatch:
 
-permissions:
-  contents: write # Needed to create GitHub Releases
-
 jobs:
-  build:
+  build-and-publish:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+        
+      - name: Generate Auto-Incrementing Version
+        id: get_version
+        run: |
+          $line = Get-Content pubspec.yaml | Select-String -Pattern "^version: "
+          $version = $line -replace "version: ", ""
+          $version = $version.Split("+")[0]
+          $parts = $version.Split(".")
+          $major = $parts[0]
+          $minor = $parts[1]
+          $autoVersion = "$major.$minor.$env:GITHUB_RUN_NUMBER"
+          echo "APP_VERSION=$autoVersion" >> $env:GITHUB_ENV
+          
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -30,12 +40,31 @@ jobs:
         with:
           path: windows/installer.iss
           
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: release-build-${{ github.run_number }}
-          name: Rukmini Khata - Build ${{ github.run_number }}
-          files: build/windows/installer/RukminiKhata_Setup.exe
-          body: |
-            This is an automated release. 
-            Download the `RukminiKhata_Setup.exe` file below to install the application.
+      - name: Publish to Public Repository
+        env:
+          GH_TOKEN: ${{ secrets.AUTO_UPDATE_TOKEN }}
+        run: |
+          # 1. Clone the public releases repository
+          git clone https://$env:GH_TOKEN@github.com/shaikhakramshakil/khata-releases.git releases_repo
+          cd releases_repo
+          
+          # 2. Create a GitHub Release in the public repo and upload the .exe installer
+          gh release create "v$env:APP_VERSION" "..\build\windows\installer\RukminiKhata_Setup.exe" --title "Rukmini Khata v$env:APP_VERSION" --notes "Automated update to v$env:APP_VERSION" --repo shaikhakramshakil/khata-releases
+          
+          # 3. Update the version.json file to trigger the pop-up on client computers
+          $json = @"
+          {
+            "version": "$env:APP_VERSION",
+            "downloadUrl": "https://github.com/shaikhakramshakil/khata-releases/releases/download/v$env:APP_VERSION/RukminiKhata_Setup.exe",
+            "releaseNotes": "Automated background update (Build $env:GITHUB_RUN_NUMBER)",
+            "isMandatory": false
+          }
+          "@
+          Set-Content -Path version.json -Value $json
+          
+          # 4. Push the new version.json file to the public repo
+          git config user.name "GitHub Actions Auto-Updater"
+          git config user.email "actions@github.com"
+          git add version.json
+          git commit -m "chore: Trigger auto-update for v$env:APP_VERSION"
+          git push
