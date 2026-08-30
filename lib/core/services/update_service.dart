@@ -41,7 +41,7 @@ class UpdateService {
       if (!Platform.isWindows) return null; // We only support auto-update on Windows for now
 
       final response = await _dio.get(
-        _updateJsonUrl,
+        '$_updateJsonUrl?t=${DateTime.now().millisecondsSinceEpoch}',
         options: Options(
           headers: {'Cache-Control': 'no-cache'}, // Prevent caching old version
         ),

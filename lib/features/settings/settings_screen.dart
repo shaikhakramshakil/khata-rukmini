@@ -7,6 +7,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/utils/security_service.dart';
 import '../../core/widgets/app_button.dart';
+import '../../core/services/update_service.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -28,6 +29,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   String? _backupDirectory;
   bool _isInitialized = false;
   bool _isSaving = false;
+  bool _isCheckingUpdate = false;
+  final UpdateService _updateService = UpdateService();
+  double _downloadProgress = 0.0;
+  bool _isDownloading = false;
 
   @override
   void dispose() {
@@ -54,6 +59,100 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _termsController.text = settings.terms;
     _backupDirectory = settings.backupDirectory;
     _isInitialized = true;
+  }
+
+  Future<void> _checkForUpdatesManually() async {
+    if (_isCheckingUpdate) return;
+    setState(() => _isCheckingUpdate = true);
+    
+    try {
+      final updateInfo = await _updateService.checkForUpdate();
+      if (!mounted) return;
+      
+      setState(() => _isCheckingUpdate = false);
+
+      if (updateInfo != null) {
+        _showUpdateDialog(updateInfo);
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('You are already on the latest version.')),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isCheckingUpdate = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error checking for updates: $e')),
+      );
+    }
+  }
+
+  void _showUpdateDialog(UpdateInfo updateInfo) {
+    showDialog(
+      context: context,
+      barrierDismissible: !updateInfo.isMandatory,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) {
+          return AlertDialog(
+            title: const Text('Update Available'),
+            content: SizedBox(
+              width: 400,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Version ${updateInfo.version} is available!'),
+                  const SizedBox(height: 12),
+                  Text('Release Notes:', style: AppTypography.label),
+                  const SizedBox(height: 4),
+                  Text(updateInfo.releaseNotes),
+                  if (_isDownloading) ...[
+                    const SizedBox(height: 24),
+                    LinearProgressIndicator(value: _downloadProgress),
+                    const SizedBox(height: 8),
+                    Text('${(_downloadProgress * 100).toStringAsFixed(1)}% downloaded'),
+                  ]
+                ],
+              ),
+            ),
+            actions: [
+              if (!updateInfo.isMandatory && !_isDownloading)
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cancel'),
+                ),
+              if (!_isDownloading)
+                AppButton(
+                  label: 'Update Now',
+                  onPressed: () async {
+                    setDialogState(() {
+                      _isDownloading = true;
+                      _downloadProgress = 0.0;
+                    });
+                    final file = await _updateService.downloadUpdate(
+                      updateInfo.downloadUrl, 
+                      (count, total) {
+                        if (total > 0) {
+                          setDialogState(() => _downloadProgress = count / total);
+                        }
+                      }
+                    );
+                    if (file != null) {
+                      _updateService.installUpdateAndRestart(file);
+                    } else {
+                      setDialogState(() => _isDownloading = false);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Failed to download update.')),
+                      );
+                    }
+                  },
+                ),
+            ],
+          );
+        }
+      ),
+    );
   }
 
   Future<void> _save() async {
@@ -473,6 +572,30 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                       _showPinDialog(isChanging: false),
                                 ),
                               ],
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Software Updates Card
+                      _buildSectionCard(
+                        title: 'SOFTWARE UPDATES',
+                        subtitle: 'Check for the latest features and bug fixes.',
+                        children: [
+                          Row(
+                            children: [
+                              const Expanded(
+                                child: Text(
+                                  'Keep your application up to date.',
+                                ),
+                              ),
+                              AppButton(
+                                label: 'Check for Updates',
+                                icon: Icons.system_update_alt_outlined,
+                                isLoading: _isCheckingUpdate,
+                                onPressed: _checkForUpdatesManually,
+                              ),
                             ],
                           ),
                         ],
