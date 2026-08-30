@@ -21,9 +21,13 @@ class CsvExportService {
   Future<File> exportTransactionsToCsv(
     String directoryPath, {
     bool includeDeleted = false,
+    DateTime? startDate,
+    DateTime? endDate,
   }) async {
     final allTxns = await _db.getAllTransactionsWithParty(
       includeDeleted: includeDeleted,
+      startDate: startDate,
+      endDate: endDate,
     );
 
     final buffer = StringBuffer();

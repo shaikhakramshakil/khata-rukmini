@@ -337,6 +337,8 @@ class AppDatabase extends _$AppDatabase {
     String? typeFilter,
     bool includeDeleted = false,
     bool onlyDeleted = false,
+    DateTime? startDate,
+    DateTime? endDate,
   }) async {
     final query =
         select(transactions).join([
@@ -354,6 +356,13 @@ class AppDatabase extends _$AppDatabase {
 
     if (typeFilter != null && typeFilter.isNotEmpty && typeFilter != 'all') {
       query.where(transactions.type.equals(typeFilter));
+    }
+
+    if (startDate != null) {
+      query.where(transactions.date.isBiggerOrEqualValue(startDate));
+    }
+    if (endDate != null) {
+      query.where(transactions.date.isSmallerOrEqualValue(endDate));
     }
 
     final rows = await query.get();

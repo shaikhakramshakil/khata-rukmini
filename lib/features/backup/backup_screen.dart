@@ -8,6 +8,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
+import '../../core/utils/formatters.dart';
 import '../../core/widgets/app_button.dart';
 
 class BackupScreen extends ConsumerStatefulWidget {
@@ -20,6 +21,8 @@ class BackupScreen extends ConsumerStatefulWidget {
 class _BackupScreenState extends ConsumerState<BackupScreen> {
   bool _isWorking = false;
   bool _includeDeleted = false;
+  DateTime? _startDate;
+  DateTime? _endDate;
 
   Future<void> _backupData() async {
     setState(() => _isWorking = true);
@@ -148,6 +151,10 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
       final csvFile = await csvService.exportTransactionsToCsv(
         selectedDirectory,
         includeDeleted: _includeDeleted,
+        startDate: _startDate,
+        endDate: _endDate != null
+            ? DateTime(_endDate!.year, _endDate!.month, _endDate!.day, 23, 59, 59)
+            : null,
       );
 
       if (mounted) {
@@ -306,6 +313,74 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                                   activeColor: AppColors.ink,
                                 ),
                                 const Text('Include deleted records'),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Wrap(
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: [
+                                Text('Date Range:', style: AppTypography.bodySmall),
+                                InkWell(
+                                  onTap: () async {
+                                    final picked = await showDatePicker(
+                                      context: context,
+                                      initialDate: _startDate ?? DateTime.now(),
+                                      firstDate: DateTime(2000),
+                                      lastDate: DateTime(2100),
+                                    );
+                                    if (picked != null) {
+                                      setState(() => _startDate = picked);
+                                    }
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(color: AppColors.hairline),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      _startDate != null ? AppFormatters.formatInputDate(_startDate!) : 'From Date',
+                                      style: AppTypography.bodySmall,
+                                    ),
+                                  ),
+                                ),
+                                if (_startDate != null)
+                                  InkWell(
+                                    onTap: () => setState(() => _startDate = null),
+                                    child: const Icon(Icons.clear, size: 16, color: AppColors.mute),
+                                  ),
+                                const Text('to', style: AppTypography.bodySmall),
+                                InkWell(
+                                  onTap: () async {
+                                    final picked = await showDatePicker(
+                                      context: context,
+                                      initialDate: _endDate ?? DateTime.now(),
+                                      firstDate: _startDate ?? DateTime(2000),
+                                      lastDate: DateTime(2100),
+                                    );
+                                    if (picked != null) {
+                                      setState(() => _endDate = picked);
+                                    }
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(color: AppColors.hairline),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      _endDate != null ? AppFormatters.formatInputDate(_endDate!) : 'To Date',
+                                      style: AppTypography.bodySmall,
+                                    ),
+                                  ),
+                                ),
+                                if (_endDate != null)
+                                  InkWell(
+                                    onTap: () => setState(() => _endDate = null),
+                                    child: const Icon(Icons.clear, size: 16, color: AppColors.mute),
+                                  ),
                               ],
                             ),
                           ],
