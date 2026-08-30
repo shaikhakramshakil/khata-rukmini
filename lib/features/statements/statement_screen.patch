@@ -1,0 +1,52 @@
+--- lib/features/statements/statement_screen.dart
++++ lib/features/statements/statement_screen.dart
+@@ -110,8 +110,10 @@
+                 border: Border.all(color: AppColors.hairline),
+               ),
+-              child: Row(
++              child: Wrap(
++                spacing: 12,
++                runSpacing: 12,
++                crossAxisAlignment: WrapCrossAlignment.center,
+                 children: [
+                   // Party Dropdown (when not general ledger)
+                   if (!_isGeneralLedger) ...[
+-                    Expanded(
+-                      flex: 3,
+-                      child: partiesAsync.when(
++                    SizedBox(
++                      width: 250,
++                      child: partiesAsync.when(
+@@ -139,3 +141,2 @@
+                     ),
+-                    const SizedBox(width: 16),
+                   ],
+@@ -148,3 +149,2 @@
+                   ),
+-                  const SizedBox(width: 8),
+                   ChoiceChip(
+@@ -154,3 +154,2 @@
+                   ),
+-                  const SizedBox(width: 8),
+                   ChoiceChip(
+@@ -160,3 +159,2 @@
+                   ),
+-                  const SizedBox(width: 16),
+ 
+@@ -193,6 +191,3 @@
+                   ),
+-                  const Padding(
+-                    padding: EdgeInsets.symmetric(horizontal: 8.0),
+-                    child: Text('to', style: AppTypography.bodySmall),
+-                  ),
++                  const Text('to', style: AppTypography.bodySmall),
+                   InkWell(
+@@ -228,4 +223,2 @@
+ 
+-                  const Spacer(),
+-
+                   // Print and PDF buttons
+@@ -238,3 +231,2 @@
+                   ),
+-                  const SizedBox(width: 8),
+                   AppButton(
