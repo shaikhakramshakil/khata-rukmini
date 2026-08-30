@@ -5,6 +5,9 @@ on:
     branches: [ "main", "master" ]
   workflow_dispatch:
 
+permissions:
+  contents: write # Needed to create GitHub Releases
+
 jobs:
   build:
     runs-on: windows-latest
@@ -22,8 +25,17 @@ jobs:
       - name: Build Windows
         run: flutter build windows
         
-      - name: Upload Windows Executable
-        uses: actions/upload-artifact@v4
+      - name: Compile Inno Setup Installer
+        uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
         with:
-          name: RukminiKhata-Windows
-          path: build\windows\x64\runner\Release\
+          path: windows/installer.iss
+          
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: release-build-${{ github.run_number }}
+          name: Rukmini Khata - Build ${{ github.run_number }}
+          files: build/windows/installer/RukminiKhata_Setup.exe
+          body: |
+            This is an automated release. 
+            Download the `RukminiKhata_Setup.exe` file below to install the application.
