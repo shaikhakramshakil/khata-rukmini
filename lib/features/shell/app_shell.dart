@@ -18,6 +18,8 @@ import '../transactions/transaction_detail_dialog.dart';
 import '../transactions/transaction_form_dialog.dart';
 import '../transactions/transaction_list_screen.dart';
 
+import 'package:khata_rukmini/core/services/update_service.dart';
+
 class AppShell extends ConsumerStatefulWidget {
   const AppShell({super.key});
 
@@ -29,14 +31,103 @@ class _AppShellState extends ConsumerState<AppShell> {
   int _selectedTabIndex = 0;
   String? _activePartyProfileId;
   String? _statementPartyId;
+  final UpdateService _updateService = UpdateService();
+  bool _isCheckingUpdate = false;
+  double _downloadProgress = 0.0;
+  bool _isDownloading = false;
   bool _hasCheckedFirstRun = false;
 
   @override
   void initState() {
     super.initState();
+    // Rebuild app bar on shop settings change
+    ref.listenManual(shopSettingsProvider, (prev, next) {
+      if (mounted) setState(() {});
+    });
+    
+    // Check for updates on launch
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _runStartupChecks();
+      _checkForUpdates();
     });
+  }
+
+  Future<void> _checkForUpdates() async {
+    if (_isCheckingUpdate) return;
+    setState(() => _isCheckingUpdate = true);
+    
+    final updateInfo = await _updateService.checkForUpdate();
+    if (!mounted) return;
+    setState(() => _isCheckingUpdate = false);
+
+    if (updateInfo != null) {
+      _showUpdateDialog(updateInfo);
+    }
+  }
+
+  void _showUpdateDialog(UpdateInfo updateInfo) {
+    showDialog(
+      context: context,
+      barrierDismissible: !updateInfo.isMandatory,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) {
+          return AlertDialog(
+            title: const Text('Update Available'),
+            content: SizedBox(
+              width: 400,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Version ${updateInfo.version} is available!'),
+                  const SizedBox(height: 12),
+                  Text('Release Notes:', style: AppTypography.label),
+                  const SizedBox(height: 4),
+                  Text(updateInfo.releaseNotes),
+                  if (_isDownloading) ...[
+                    const SizedBox(height: 24),
+                    LinearProgressIndicator(value: _downloadProgress),
+                    const SizedBox(height: 8),
+                    Text('${(_downloadProgress * 100).toStringAsFixed(1)}% downloaded'),
+                  ]
+                ],
+              ),
+            ),
+            actions: [
+              if (!updateInfo.isMandatory && !_isDownloading)
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Later'),
+                ),
+              if (!_isDownloading)
+                AppButton(
+                  label: 'Update Now',
+                  onPressed: () async {
+                    setDialogState(() {
+                      _isDownloading = true;
+                      _downloadProgress = 0.0;
+                    });
+                    final file = await _updateService.downloadUpdate(
+                      updateInfo.downloadUrl, 
+                      (count, total) {
+                        if (total > 0) {
+                          setDialogState(() => _downloadProgress = count / total);
+                        }
+                      }
+                    );
+                    if (file != null) {
+                      _updateService.installUpdateAndRestart(file);
+                    } else {
+                      setDialogState(() => _isDownloading = false);
+                      // Show error...
+                    }
+                  },
+                ),
+            ],
+          );
+        }
+      ),
+    );
   }
 
   Future<void> _runStartupChecks() async {
