@@ -210,95 +210,111 @@ class _AppShellState extends ConsumerState<AppShell> {
                 child: Row(
                   children: [
                     // Brand / Shop title
-                    const Icon(
-                      Icons.menu_book_outlined,
-                      size: 20,
-                      color: AppColors.ink,
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      shopName,
-                      style: AppTypography.label.copyWith(
-                        fontWeight: FontWeight.w600,
+                    Expanded(
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.menu_book_outlined,
+                            size: 20,
+                            color: AppColors.ink,
+                          ),
+                          const SizedBox(width: 10),
+                          Flexible(
+                            child: Text(
+                              shopName,
+                              style: AppTypography.label.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
 
-                    const Spacer(),
-
-                    // Global Search Button (Ctrl + K)
-                    InkWell(
-                      onTap: _openSearch,
-                      borderRadius: BorderRadius.circular(6),
-                      child: Container(
-                        height: 32,
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        decoration: BoxDecoration(
-                          color: AppColors.hairlineSoft,
+                    // Centered Action Buttons
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Global Search Button (Ctrl + K)
+                        InkWell(
+                          onTap: _openSearch,
                           borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: AppColors.hairline),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.search,
-                              size: 16,
-                              color: AppColors.mute,
+                          child: Container(
+                            height: 32,
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            decoration: BoxDecoration(
+                              color: AppColors.hairlineSoft,
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: AppColors.hairline),
                             ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Search anything...',
-                              style: AppTypography.bodySmall.copyWith(
-                                color: AppColors.mute,
-                              ),
-                            ),
-                            const SizedBox(width: 20),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 5,
-                                vertical: 1,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.elevated,
-                                borderRadius: BorderRadius.circular(4),
-                                border: Border.all(color: AppColors.hairline),
-                              ),
-                              child: Text(
-                                'Ctrl K',
-                                style: AppTypography.codeMono.copyWith(
-                                  fontSize: 10,
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.search,
+                                  size: 16,
                                   color: AppColors.mute,
                                 ),
-                              ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Search anything...',
+                                  style: AppTypography.bodySmall.copyWith(
+                                    color: AppColors.mute,
+                                  ),
+                                ),
+                                const SizedBox(width: 20),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 5,
+                                    vertical: 1,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.elevated,
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(color: AppColors.hairline),
+                                  ),
+                                  child: Text(
+                                    'Ctrl K',
+                                    style: AppTypography.codeMono.copyWith(
+                                      fontSize: 10,
+                                      color: AppColors.mute,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
-                      ),
+
+                        const SizedBox(width: 12),
+
+                        // Global Interest Calculator
+                        AppButton(
+                          label: 'Interest Calc',
+                          variant: AppButtonVariant.secondary,
+                          icon: Icons.percent,
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (ctx) => const InterestCalculatorDialog(),
+                            );
+                          },
+                        ),
+
+                        const SizedBox(width: 8),
+
+                        // Quick Transaction Button (Ctrl + N)
+                        AppButton(
+                          label: 'New Entry',
+                          variant: AppButtonVariant.primary,
+                          icon: Icons.add,
+                          onPressed: _openNewTransaction,
+                        ),
+                      ],
                     ),
 
-                    const SizedBox(width: 12),
-
-                    // Global Interest Calculator
-                    AppButton(
-                      label: 'Interest Calc',
-                      variant: AppButtonVariant.secondary,
-                      icon: Icons.percent,
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (ctx) => const InterestCalculatorDialog(),
-                        );
-                      },
-                    ),
-
-                    const SizedBox(width: 8),
-
-                    // Quick Transaction Button (Ctrl + N)
-                    AppButton(
-                      label: 'New Entry',
-                      variant: AppButtonVariant.primary,
-                      icon: Icons.add,
-                      onPressed: _openNewTransaction,
-                    ),
+                    // Right padding to balance the left Expanded, making the middle Row perfectly centered
+                    const Spacer(),
                   ],
                 ),
               ),
