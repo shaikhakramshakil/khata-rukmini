@@ -141,6 +141,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     if (file != null) {
                       _updateService.installUpdateAndRestart(file);
                     } else {
+                      if (!mounted) return;
                       setDialogState(() => _isDownloading = false);
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Failed to download update.')),
