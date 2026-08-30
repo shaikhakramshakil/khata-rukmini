@@ -6,6 +6,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/widgets/app_button.dart';
 import '../backup/backup_screen.dart';
+import '../backup/recycle_bin_screen.dart';
 import '../dashboard/dashboard_screen.dart';
 import '../parties/interest_calculator_dialog.dart';
 import '../parties/party_list_screen.dart';
@@ -377,6 +378,11 @@ class _AppShellState extends ConsumerState<AppShell> {
                             Icons.backup_outlined,
                             'Backup & Restore',
                           ),
+                          _buildSidebarItem(
+                            7,
+                            Icons.delete_outline,
+                            'Recycle Bin',
+                          ),
                           const Divider(height: 1, color: AppColors.hairline),
                           Padding(
                             padding: const EdgeInsets.symmetric(
@@ -558,6 +564,8 @@ class _AppShellState extends ConsumerState<AppShell> {
         return const SettingsScreen();
       case 6:
         return const BackupScreen();
+      case 7:
+        return const RecycleBinScreen();
       default:
         return const SizedBox();
     }

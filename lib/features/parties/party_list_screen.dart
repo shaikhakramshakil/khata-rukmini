@@ -31,6 +31,7 @@ class _PartyListScreenState extends ConsumerState<PartyListScreen> {
   final _searchController = TextEditingController();
   String _filterQuery = '';
   bool _filterPendingOnly = false;
+  String _sortOrder = 'name';
 
   @override
   void dispose() {
@@ -118,6 +119,48 @@ class _PartyListScreenState extends ConsumerState<PartyListScreen> {
                         setState(() => _filterQuery = val.trim().toLowerCase()),
                   ),
                 ),
+                PopupMenuButton<String>(
+                  tooltip: 'Sort List',
+                  initialValue: _sortOrder,
+                  onSelected: (val) => setState(() => _sortOrder = val),
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: 'name',
+                      child: Text('Sort by Name (A-Z)'),
+                    ),
+                    const PopupMenuItem(
+                      value: 'highestDue',
+                      child: Text('Sort by Highest Due'),
+                    ),
+                    const PopupMenuItem(
+                      value: 'highestAdvance',
+                      child: Text('Sort by Highest Advance'),
+                    ),
+                  ],
+                  child: Container(
+                    height: 38,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: AppColors.hairline),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.sort, size: 18, color: AppColors.mute),
+                        const SizedBox(width: 8),
+                        Text(
+                          _sortOrder == 'name'
+                              ? 'Name'
+                              : _sortOrder == 'highestDue'
+                                  ? 'Highest Due'
+                                  : 'Highest Advance',
+                          style: AppTypography.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
                 if (isCustomer) ...[
                   partiesAsync.maybeWhen(
                     data: (parties) {
@@ -171,6 +214,16 @@ class _PartyListScreenState extends ConsumerState<PartyListScreen> {
                         phone.contains(_filterQuery) ||
                         address.contains(_filterQuery);
                   }).toList();
+
+                  filtered.sort((a, b) {
+                    if (_sortOrder == 'highestDue') {
+                      return b.currentBalance.compareTo(a.currentBalance);
+                    } else if (_sortOrder == 'highestAdvance') {
+                      return a.currentBalance.compareTo(b.currentBalance);
+                    } else {
+                      return a.party.name.toLowerCase().compareTo(b.party.name.toLowerCase());
+                    }
+                  });
 
                   if (filtered.isEmpty) {
                     return EmptyState(
