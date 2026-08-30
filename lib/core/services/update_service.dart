@@ -38,13 +38,13 @@ class UpdateService {
 
   Future<UpdateInfo?> checkForUpdate() async {
     try {
-      if (!Platform.isWindows) return null; // We only support auto-update on Windows for now
+      if (!Platform.isWindows) {
+        throw Exception("Auto-update is only supported on Windows.");
+      }
 
       final response = await _dio.get(
         '$_updateJsonUrl?t=${DateTime.now().millisecondsSinceEpoch}',
-        options: Options(
-          headers: {'Cache-Control': 'no-cache'}, // Prevent caching old version
-        ),
+        options: Options(headers: {'Cache-Control': 'no-cache'}),
       );
 
       final Map<String, dynamic> data;
@@ -59,11 +59,13 @@ class UpdateService {
 
       if (_isNewerVersion(updateInfo.version, currentVersion)) {
         return updateInfo;
+      } else {
+        throw Exception("Server Version: ${updateInfo.version}, Local Version: $currentVersion");
       }
     } catch (e) {
       debugPrint('Error checking for update: $e');
+      rethrow;
     }
-    return null;
   }
 
   Future<String> _getCurrentVersion() async {

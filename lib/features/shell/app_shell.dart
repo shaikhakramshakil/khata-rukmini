@@ -56,12 +56,17 @@ class _AppShellState extends ConsumerState<AppShell> {
     if (_isCheckingUpdate) return;
     setState(() => _isCheckingUpdate = true);
     
-    final updateInfo = await _updateService.checkForUpdate();
-    if (!mounted) return;
-    setState(() => _isCheckingUpdate = false);
+    try {
+      final updateInfo = await _updateService.checkForUpdate();
+      if (!mounted) return;
+      setState(() => _isCheckingUpdate = false);
 
-    if (updateInfo != null) {
-      _showUpdateDialog(updateInfo);
+      if (updateInfo != null) {
+        _showUpdateDialog(updateInfo);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isCheckingUpdate = false);
     }
   }
 
