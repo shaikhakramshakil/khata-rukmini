@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -29,12 +30,22 @@ class UpdateInfo {
 }
 
 class UpdateService {
-  // IMPORTANT: Because your main repository is Private, you cannot host this file 
-  // in the private repo. You must create a second PUBLIC repository (e.g. `khata-releases`)
-  // or use AWS S3 / Firebase Hosting, and put the URL here.
   static const String _updateJsonUrl = 'https://raw.githubusercontent.com/shaikhakramshakil/khata-releases/main/version.json';
   
-  final Dio _dio = Dio();
+  late final Dio _dio;
+
+  UpdateService() {
+    _dio = Dio();
+    // Fix for older Windows PCs (Windows 7/8/10) that have outdated root certificates.
+    // This prevents the CERTIFICATE_VERIFY_FAILED handshake error.
+    _dio.httpClientAdapter = IOHttpClientAdapter(
+      createHttpClient: () {
+        final client = HttpClient();
+        client.badCertificateCallback = (X509Certificate cert, String host, int port) => true;
+        return client;
+      },
+    );
+  }
 
   Future<UpdateInfo?> checkForUpdate() async {
     try {
