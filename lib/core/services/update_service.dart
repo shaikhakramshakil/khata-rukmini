@@ -70,9 +70,9 @@ class UpdateService {
 
       if (_isNewerVersion(updateInfo.version, currentVersion)) {
         return updateInfo;
-      } else {
-        throw Exception("Server Version: ${updateInfo.version}, Local Version: $currentVersion");
       }
+      
+      return null;
     } catch (e) {
       debugPrint('Error checking for update: $e');
       rethrow;
