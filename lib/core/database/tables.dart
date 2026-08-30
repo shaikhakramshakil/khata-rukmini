@@ -74,6 +74,7 @@ class TransactionLineItems extends Table {
   TextColumn get transactionId => text().references(Transactions, #id)();
   TextColumn get description => text()();
   RealColumn get quantity => real().withDefault(const Constant(1.0))();
+  TextColumn get unit => text().nullable()(); // e.g., NOS, PCS, KG
   RealColumn get rate => real().withDefault(const Constant(0.0))();
   RealColumn get amount => real()();
 

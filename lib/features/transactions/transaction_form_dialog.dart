@@ -119,6 +119,7 @@ class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
           _lineItems.add({
             'description': item.description,
             'quantity': item.quantity,
+            'unit': item.unit ?? 'NOS',
             'rate': item.rate,
             'amount': item.amount,
           });
@@ -156,6 +157,7 @@ class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
       _lineItems.add({
         'description': '',
         'quantity': 1.0,
+        'unit': 'NOS',
         'rate': 0.0,
         'amount': 0.0,
       });
@@ -762,6 +764,30 @@ class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
                                 item['quantity'] = qty;
                                 item['amount'] = qty * (item['rate'] as num);
                                 _recalculateAmountFromLineItems();
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            flex: 2,
+                            child: DropdownButtonFormField<String>(
+                              value: item['unit'] as String? ?? 'NOS',
+                              decoration: const InputDecoration(
+                                labelText: 'Unit',
+                              ),
+                              items: const [
+                                DropdownMenuItem(value: 'NOS', child: Text('NOS')),
+                                DropdownMenuItem(value: 'PCS', child: Text('PCS')),
+                                DropdownMenuItem(value: 'KGS', child: Text('KGS')),
+                                DropdownMenuItem(value: 'LTR', child: Text('LTR')),
+                                DropdownMenuItem(value: 'MTR', child: Text('MTR')),
+                                DropdownMenuItem(value: 'PKT', child: Text('PKT')),
+                                DropdownMenuItem(value: 'BOX', child: Text('BOX')),
+                              ],
+                              onChanged: (val) {
+                                setState(() {
+                                  item['unit'] = val;
+                                });
                               },
                             ),
                           ),

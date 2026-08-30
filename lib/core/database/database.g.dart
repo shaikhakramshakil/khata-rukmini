@@ -1592,6 +1592,15 @@ class $TransactionLineItemsTable extends TransactionLineItems
     requiredDuringInsert: false,
     defaultValue: const Constant(1.0),
   );
+  static const VerificationMeta _unitMeta = const VerificationMeta('unit');
+  @override
+  late final GeneratedColumn<String> unit = GeneratedColumn<String>(
+    'unit',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _rateMeta = const VerificationMeta('rate');
   @override
   late final GeneratedColumn<double> rate = GeneratedColumn<double>(
@@ -1617,6 +1626,7 @@ class $TransactionLineItemsTable extends TransactionLineItems
     transactionId,
     description,
     quantity,
+    unit,
     rate,
     amount,
   ];
@@ -1665,6 +1675,12 @@ class $TransactionLineItemsTable extends TransactionLineItems
         quantity.isAcceptableOrUnknown(data['quantity']!, _quantityMeta),
       );
     }
+    if (data.containsKey('unit')) {
+      context.handle(
+        _unitMeta,
+        unit.isAcceptableOrUnknown(data['unit']!, _unitMeta),
+      );
+    }
     if (data.containsKey('rate')) {
       context.handle(
         _rateMeta,
@@ -1704,6 +1720,10 @@ class $TransactionLineItemsTable extends TransactionLineItems
         DriftSqlType.double,
         data['${effectivePrefix}quantity'],
       )!,
+      unit: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}unit'],
+      ),
       rate: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}rate'],
@@ -1727,6 +1747,7 @@ class TransactionLineItem extends DataClass
   final String transactionId;
   final String description;
   final double quantity;
+  final String? unit;
   final double rate;
   final double amount;
   const TransactionLineItem({
@@ -1734,6 +1755,7 @@ class TransactionLineItem extends DataClass
     required this.transactionId,
     required this.description,
     required this.quantity,
+    this.unit,
     required this.rate,
     required this.amount,
   });
@@ -1744,6 +1766,9 @@ class TransactionLineItem extends DataClass
     map['transaction_id'] = Variable<String>(transactionId);
     map['description'] = Variable<String>(description);
     map['quantity'] = Variable<double>(quantity);
+    if (!nullToAbsent || unit != null) {
+      map['unit'] = Variable<String>(unit);
+    }
     map['rate'] = Variable<double>(rate);
     map['amount'] = Variable<double>(amount);
     return map;
@@ -1755,6 +1780,7 @@ class TransactionLineItem extends DataClass
       transactionId: Value(transactionId),
       description: Value(description),
       quantity: Value(quantity),
+      unit: unit == null && nullToAbsent ? const Value.absent() : Value(unit),
       rate: Value(rate),
       amount: Value(amount),
     );
@@ -1770,6 +1796,7 @@ class TransactionLineItem extends DataClass
       transactionId: serializer.fromJson<String>(json['transactionId']),
       description: serializer.fromJson<String>(json['description']),
       quantity: serializer.fromJson<double>(json['quantity']),
+      unit: serializer.fromJson<String?>(json['unit']),
       rate: serializer.fromJson<double>(json['rate']),
       amount: serializer.fromJson<double>(json['amount']),
     );
@@ -1782,6 +1809,7 @@ class TransactionLineItem extends DataClass
       'transactionId': serializer.toJson<String>(transactionId),
       'description': serializer.toJson<String>(description),
       'quantity': serializer.toJson<double>(quantity),
+      'unit': serializer.toJson<String?>(unit),
       'rate': serializer.toJson<double>(rate),
       'amount': serializer.toJson<double>(amount),
     };
@@ -1792,6 +1820,7 @@ class TransactionLineItem extends DataClass
     String? transactionId,
     String? description,
     double? quantity,
+    Value<String?> unit = const Value.absent(),
     double? rate,
     double? amount,
   }) => TransactionLineItem(
@@ -1799,6 +1828,7 @@ class TransactionLineItem extends DataClass
     transactionId: transactionId ?? this.transactionId,
     description: description ?? this.description,
     quantity: quantity ?? this.quantity,
+    unit: unit.present ? unit.value : this.unit,
     rate: rate ?? this.rate,
     amount: amount ?? this.amount,
   );
@@ -1812,6 +1842,7 @@ class TransactionLineItem extends DataClass
           ? data.description.value
           : this.description,
       quantity: data.quantity.present ? data.quantity.value : this.quantity,
+      unit: data.unit.present ? data.unit.value : this.unit,
       rate: data.rate.present ? data.rate.value : this.rate,
       amount: data.amount.present ? data.amount.value : this.amount,
     );
@@ -1824,6 +1855,7 @@ class TransactionLineItem extends DataClass
           ..write('transactionId: $transactionId, ')
           ..write('description: $description, ')
           ..write('quantity: $quantity, ')
+          ..write('unit: $unit, ')
           ..write('rate: $rate, ')
           ..write('amount: $amount')
           ..write(')'))
@@ -1832,7 +1864,7 @@ class TransactionLineItem extends DataClass
 
   @override
   int get hashCode =>
-      Object.hash(id, transactionId, description, quantity, rate, amount);
+      Object.hash(id, transactionId, description, quantity, unit, rate, amount);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1841,6 +1873,7 @@ class TransactionLineItem extends DataClass
           other.transactionId == this.transactionId &&
           other.description == this.description &&
           other.quantity == this.quantity &&
+          other.unit == this.unit &&
           other.rate == this.rate &&
           other.amount == this.amount);
 }
@@ -1851,6 +1884,7 @@ class TransactionLineItemsCompanion
   final Value<String> transactionId;
   final Value<String> description;
   final Value<double> quantity;
+  final Value<String?> unit;
   final Value<double> rate;
   final Value<double> amount;
   final Value<int> rowid;
@@ -1859,6 +1893,7 @@ class TransactionLineItemsCompanion
     this.transactionId = const Value.absent(),
     this.description = const Value.absent(),
     this.quantity = const Value.absent(),
+    this.unit = const Value.absent(),
     this.rate = const Value.absent(),
     this.amount = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -1868,6 +1903,7 @@ class TransactionLineItemsCompanion
     required String transactionId,
     required String description,
     this.quantity = const Value.absent(),
+    this.unit = const Value.absent(),
     this.rate = const Value.absent(),
     required double amount,
     this.rowid = const Value.absent(),
@@ -1880,6 +1916,7 @@ class TransactionLineItemsCompanion
     Expression<String>? transactionId,
     Expression<String>? description,
     Expression<double>? quantity,
+    Expression<String>? unit,
     Expression<double>? rate,
     Expression<double>? amount,
     Expression<int>? rowid,
@@ -1889,6 +1926,7 @@ class TransactionLineItemsCompanion
       if (transactionId != null) 'transaction_id': transactionId,
       if (description != null) 'description': description,
       if (quantity != null) 'quantity': quantity,
+      if (unit != null) 'unit': unit,
       if (rate != null) 'rate': rate,
       if (amount != null) 'amount': amount,
       if (rowid != null) 'rowid': rowid,
@@ -1900,6 +1938,7 @@ class TransactionLineItemsCompanion
     Value<String>? transactionId,
     Value<String>? description,
     Value<double>? quantity,
+    Value<String?>? unit,
     Value<double>? rate,
     Value<double>? amount,
     Value<int>? rowid,
@@ -1909,6 +1948,7 @@ class TransactionLineItemsCompanion
       transactionId: transactionId ?? this.transactionId,
       description: description ?? this.description,
       quantity: quantity ?? this.quantity,
+      unit: unit ?? this.unit,
       rate: rate ?? this.rate,
       amount: amount ?? this.amount,
       rowid: rowid ?? this.rowid,
@@ -1930,6 +1970,9 @@ class TransactionLineItemsCompanion
     if (quantity.present) {
       map['quantity'] = Variable<double>(quantity.value);
     }
+    if (unit.present) {
+      map['unit'] = Variable<String>(unit.value);
+    }
     if (rate.present) {
       map['rate'] = Variable<double>(rate.value);
     }
@@ -1949,6 +1992,7 @@ class TransactionLineItemsCompanion
           ..write('transactionId: $transactionId, ')
           ..write('description: $description, ')
           ..write('quantity: $quantity, ')
+          ..write('unit: $unit, ')
           ..write('rate: $rate, ')
           ..write('amount: $amount, ')
           ..write('rowid: $rowid')
@@ -4622,6 +4666,7 @@ typedef $$TransactionLineItemsTableCreateCompanionBuilder =
       required String transactionId,
       required String description,
       Value<double> quantity,
+      Value<String?> unit,
       Value<double> rate,
       required double amount,
       Value<int> rowid,
@@ -4632,6 +4677,7 @@ typedef $$TransactionLineItemsTableUpdateCompanionBuilder =
       Value<String> transactionId,
       Value<String> description,
       Value<double> quantity,
+      Value<String?> unit,
       Value<double> rate,
       Value<double> amount,
       Value<int> rowid,
@@ -4693,6 +4739,11 @@ class $$TransactionLineItemsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get unit => $composableBuilder(
+    column: $table.unit,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<double> get rate => $composableBuilder(
     column: $table.rate,
     builder: (column) => ColumnFilters(column),
@@ -4751,6 +4802,11 @@ class $$TransactionLineItemsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get unit => $composableBuilder(
+    column: $table.unit,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<double> get rate => $composableBuilder(
     column: $table.rate,
     builder: (column) => ColumnOrderings(column),
@@ -4804,6 +4860,9 @@ class $$TransactionLineItemsTableAnnotationComposer
 
   GeneratedColumn<double> get quantity =>
       $composableBuilder(column: $table.quantity, builder: (column) => column);
+
+  GeneratedColumn<String> get unit =>
+      $composableBuilder(column: $table.unit, builder: (column) => column);
 
   GeneratedColumn<double> get rate =>
       $composableBuilder(column: $table.rate, builder: (column) => column);
@@ -4875,6 +4934,7 @@ class $$TransactionLineItemsTableTableManager
                 Value<String> transactionId = const Value.absent(),
                 Value<String> description = const Value.absent(),
                 Value<double> quantity = const Value.absent(),
+                Value<String?> unit = const Value.absent(),
                 Value<double> rate = const Value.absent(),
                 Value<double> amount = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -4883,6 +4943,7 @@ class $$TransactionLineItemsTableTableManager
                 transactionId: transactionId,
                 description: description,
                 quantity: quantity,
+                unit: unit,
                 rate: rate,
                 amount: amount,
                 rowid: rowid,
@@ -4893,6 +4954,7 @@ class $$TransactionLineItemsTableTableManager
                 required String transactionId,
                 required String description,
                 Value<double> quantity = const Value.absent(),
+                Value<String?> unit = const Value.absent(),
                 Value<double> rate = const Value.absent(),
                 required double amount,
                 Value<int> rowid = const Value.absent(),
@@ -4901,6 +4963,7 @@ class $$TransactionLineItemsTableTableManager
                 transactionId: transactionId,
                 description: description,
                 quantity: quantity,
+                unit: unit,
                 rate: rate,
                 amount: amount,
                 rowid: rowid,

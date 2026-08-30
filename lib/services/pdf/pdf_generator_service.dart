@@ -565,7 +565,7 @@ class PdfGeneratorService {
                       children: [
                         _tableCell('$idx'),
                         _tableCell(item.description),
-                        _tableCell('${item.quantity}'),
+                        _tableCell('${item.quantity} ${item.unit ?? ''}'),
                         _tableCell(
                           formatPdfCurrency(item.rate),
                           align: pw.TextAlign.right,

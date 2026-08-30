@@ -140,6 +140,7 @@ class TransactionRepository {
           transactionId: Value(txnId),
           description: Value(item['description'] as String),
           quantity: Value((item['quantity'] as num?)?.toDouble() ?? 1.0),
+          unit: Value(item['unit'] as String?),
           rate: Value((item['rate'] as num?)?.toDouble() ?? 0.0),
           amount: Value((item['amount'] as num).toDouble()),
         );
@@ -262,6 +263,7 @@ class TransactionRepository {
           transactionId: Value(id),
           description: Value(item['description'] as String),
           quantity: Value((item['quantity'] as num?)?.toDouble() ?? 1.0),
+          unit: Value(item['unit'] as String?),
           rate: Value((item['rate'] as num?)?.toDouble() ?? 0.0),
           amount: Value((item['amount'] as num).toDouble()),
         );
