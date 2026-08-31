@@ -7,6 +7,9 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/utils/formatters.dart';
 import '../../core/widgets/app_button.dart';
+import '../../repositories/transaction_repository.dart';
+import '../../services/pdf/pdf_generator_service.dart';
+import '../../services/pdf/printing_service.dart';
 import '../parties/party_form_dialog.dart';
 
 class TransactionFormDialog extends ConsumerStatefulWidget {
@@ -202,6 +205,8 @@ class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
     final interestRate = double.tryParse(_interestRateController.text.trim());
 
     try {
+      TransactionWithDetails? resultTxn;
+
       if (widget.editingTransaction != null) {
         await repo.updateTransactionDetails(
           id: widget.editingTransaction!.id,
@@ -227,6 +232,7 @@ class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
                 : null,
           },
         );
+        resultTxn = await repo.getTransactionDetails(widget.editingTransaction!.id);
       } else {
         double? upfrontPaid;
         if (_hasUpfrontPayment && _selectedType == TransactionType.sale) {
@@ -242,7 +248,7 @@ class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
           }
         }
 
-        await repo.createTransaction(
+        resultTxn = await repo.createTransaction(
           partyId: _selectedPartyId!,
           type: _selectedType,
           date: _selectedDate,
@@ -272,6 +278,63 @@ class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
               ? _upfrontRefController.text.trim()
               : null,
         );
+      }
+
+      if (!mounted) return;
+
+      if (resultTxn != null) {
+        final printChoice = await showDialog<String>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Transaction Saved'),
+            content: const Text('Would you like to print or save the voucher for this transaction?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, 'close'), 
+                child: const Text('Close')
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, 'save'), 
+                child: const Text('Save as PDF')
+              ),
+              AppButton(
+                label: 'Print Now', 
+                icon: Icons.print_outlined,
+                onPressed: () => Navigator.pop(ctx, 'print')
+              ),
+            ],
+          ),
+        );
+
+        if (printChoice == 'print' || printChoice == 'save') {
+          setState(() => _isLoading = true);
+          final shop = await ref.read(settingsRepositoryProvider).getSettings();
+          final partyBalance = await ref.read(databaseProvider).getPartyCurrentBalance(resultTxn.party.id);
+          
+          Uint8List pdfBytes;
+          if (resultTxn.transaction.type == 'sale') {
+            pdfBytes = await PdfGeneratorService.generateInvoicePdf(
+              shop: shop,
+              details: resultTxn,
+              currentPartyBalance: partyBalance,
+            );
+          } else {
+            final prevBal = await repo.getBalanceBeforeTransaction(resultTxn.party.id, resultTxn.transaction.id);
+            pdfBytes = await PdfGeneratorService.generateReceiptPdf(
+              shop: shop,
+              details: resultTxn,
+              previousBalance: prevBal,
+              newBalance: partyBalance,
+            );
+          }
+          
+          final fileName = '${resultTxn.transaction.transactionNo}.pdf';
+          if (printChoice == 'print') {
+            await PrintingService.printPdfBytes(pdfBytes, docName: fileName);
+          } else if (printChoice == 'save') {
+            await PrintingService.savePdfToFile(pdfBytes, suggestedFileName: fileName);
+          }
+        }
       }
 
       if (mounted) Navigator.of(context).pop(true);
