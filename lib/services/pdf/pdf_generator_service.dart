@@ -316,6 +316,12 @@ class PdfGeneratorService {
     required double previousBalance,
     required double newBalance,
   }) async {
+    final type = details.transaction.type;
+    final isPayment = type == 'paymentReceived' || type == 'paymentMade';
+    final title = type == 'paymentReceived' 
+        ? 'PAYMENT RECEIPT' 
+        : (type == 'paymentMade' ? 'PAYMENT VOUCHER' : 'VOUCHER');
+        
     final pdf = pw.Document();
 
     pdf.addPage(
@@ -325,7 +331,7 @@ class PdfGeneratorService {
         build: (context) => pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
-            _buildPdfShopHeader(shop, 'PAYMENT RECEIPT'),
+            _buildPdfShopHeader(shop, title),
             pw.SizedBox(height: 20),
             pw.Container(
               padding: const pw.EdgeInsets.all(16),
@@ -340,7 +346,7 @@ class PdfGeneratorService {
                     mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                     children: [
                       pw.Text(
-                        'Receipt No: ${details.transaction.transactionNo}',
+                        'Voucher No: ${details.transaction.transactionNo}',
                         style: pw.TextStyle(
                           fontSize: 12,
                           fontWeight: pw.FontWeight.bold,

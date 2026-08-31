@@ -206,12 +206,15 @@ class TransactionDetailDialog extends ConsumerWidget {
 
                       Row(
                         children: [
-                          if (isPayment || isSale) ...[
-                            AppButton(
-                              label: isSale ? 'Print Invoice' : 'Print Receipt',
-                              variant: AppButtonVariant.secondary,
-                              icon: Icons.print_outlined,
-                              onPressed: () async {
+                          AppButton(
+                            label: isSale 
+                                ? 'Print Invoice' 
+                                : isPayment 
+                                    ? 'Print Receipt' 
+                                    : 'Print Voucher',
+                            variant: AppButtonVariant.secondary,
+                            icon: Icons.print_outlined,
+                            onPressed: () async {
                                 final shop = await ref
                                     .read(settingsRepositoryProvider)
                                     .getSettings();
@@ -251,7 +254,6 @@ class TransactionDetailDialog extends ConsumerWidget {
                               },
                             ),
                             const SizedBox(width: 8),
-                          ],
                           AppButton(
                             label: 'Edit',
                             variant: AppButtonVariant.secondary,

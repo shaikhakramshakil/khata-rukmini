@@ -27,6 +27,15 @@ class TransactionFormDialog extends ConsumerStatefulWidget {
 }
 
 class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
+  static const List<String> _jewelryProducts = [
+    'Mini Pot', 'Long Pot', 'Jhumar', 'Necklace', 'Sankal Tops',
+    'Huzur', 'Kudka', 'Vel', 'V Bali', 'J Tops',
+    'Ladies Ring', 'Gents Ring', 'Sui Dhaga', 'Earring', 'Thushi',
+    'Ekdani', 'Dorla', 'Sankal', 'Paddle', 'Mani',
+    'Pohe Haar', 'Mohan Maal', 'Bracelet', 'Fancy Tops', 'Mini Dorla',
+    'Bachkani Ring', 'Om Paddle', 'Bugadi', 'Heart Paddle', 'Machine Mani'
+  ];
+
   final _formKey = GlobalKey<FormState>();
 
   String? _selectedPartyId;
@@ -741,12 +750,47 @@ class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
                         children: [
                           Expanded(
                             flex: 4,
-                            child: TextFormField(
-                              initialValue: item['description'],
-                              decoration: const InputDecoration(
-                                labelText: 'Item Description',
-                              ),
-                              onChanged: (val) => item['description'] = val,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                DropdownButtonFormField<String>(
+                                  value: _jewelryProducts.contains(item['description']) 
+                                      ? item['description'] 
+                                      : (item['description'] == '' ? null : 'Custom...'),
+                                  decoration: const InputDecoration(
+                                    labelText: 'Select Product',
+                                  ),
+                                  items: [
+                                    ..._jewelryProducts.map((p) => DropdownMenuItem(
+                                      value: p,
+                                      child: Text(p, style: AppTypography.bodySmall),
+                                    )),
+                                    const DropdownMenuItem(
+                                      value: 'Custom...',
+                                      child: Text('Custom (Type manually)', style: AppTypography.bodySmall),
+                                    ),
+                                  ],
+                                  onChanged: (val) {
+                                    setState(() {
+                                      if (val != 'Custom...') {
+                                        item['description'] = val;
+                                      } else {
+                                        item['description'] = '';
+                                      }
+                                    });
+                                  },
+                                ),
+                                if (!_jewelryProducts.contains(item['description'])) ...[
+                                  const SizedBox(height: 8),
+                                  TextFormField(
+                                    initialValue: item['description'],
+                                    decoration: const InputDecoration(
+                                      labelText: 'Custom Item Name',
+                                    ),
+                                    onChanged: (val) => item['description'] = val,
+                                  ),
+                                ],
+                              ],
                             ),
                           ),
                           const SizedBox(width: 8),
