@@ -172,6 +172,7 @@ class _StatementScreenState extends ConsumerState<StatementScreen> {
                             });
                           }
                           return DropdownButtonFormField<String>(
+                            isExpanded: true,
                             initialValue: _selectedPartyId,
                             decoration: const InputDecoration(
                               labelText: 'Select Party',

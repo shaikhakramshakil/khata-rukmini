@@ -33,12 +33,36 @@ class TransactionFormDialog extends ConsumerStatefulWidget {
 
 class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
   static const List<String> _jewelryProducts = [
-    'Mini Pot', 'Long Pot', 'Jhumar', 'Necklace', 'Sankal Tops',
-    'Huzur', 'Kudka', 'Vel', 'V Bali', 'J Tops',
-    'Ladies Ring', 'Gents Ring', 'Sui Dhaga', 'Earring', 'Thushi',
-    'Ekdani', 'Dorla', 'Sankal', 'Paddle', 'Mani',
-    'Pohe Haar', 'Mohan Maal', 'Bracelet', 'Fancy Tops', 'Mini Dorla',
-    'Bachkani Ring', 'Om Paddle', 'Bugadi', 'Heart Paddle', 'Machine Mani'
+    'Mini Pot',
+    'Long Pot',
+    'Jhumar',
+    'Necklace',
+    'Sankal Tops',
+    'Huzur',
+    'Kudka',
+    'Vel',
+    'V Bali',
+    'J Tops',
+    'Ladies Ring',
+    'Gents Ring',
+    'Sui Dhaga',
+    'Earring',
+    'Thushi',
+    'Ekdani',
+    'Dorla',
+    'Sankal',
+    'Paddle',
+    'Mani',
+    'Pohe Haar',
+    'Mohan Maal',
+    'Bracelet',
+    'Fancy Tops',
+    'Mini Dorla',
+    'Bachkani Ring',
+    'Om Paddle',
+    'Bugadi',
+    'Heart Paddle',
+    'Machine Mani',
   ];
 
   final _formKey = GlobalKey<FormState>();
@@ -65,7 +89,7 @@ class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
 
   // Line items (Mandatory visible)
   final List<Map<String, dynamic>> _lineItems = [
-    {'description': '', 'quantity': 1, 'unit': 'PCS', 'rate': 0, 'amount': 0}
+    {'description': '', 'quantity': 1, 'unit': 'PCS', 'rate': 0, 'amount': 0},
   ];
 
   bool _isLoading = false;
@@ -234,7 +258,9 @@ class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
                 : null,
           },
         );
-        resultTxn = await repo.getTransactionDetails(widget.editingTransaction!.id);
+        resultTxn = await repo.getTransactionDetails(
+          widget.editingTransaction!.id,
+        );
       } else {
         double? upfrontPaid;
         if (_hasUpfrontPayment && _selectedType == TransactionType.sale) {
@@ -289,20 +315,22 @@ class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
           context: context,
           builder: (ctx) => AlertDialog(
             title: const Text('Transaction Saved'),
-            content: const Text('Would you like to print or save the voucher for this transaction?'),
+            content: const Text(
+              'Would you like to print or save the voucher for this transaction?',
+            ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(ctx, 'close'), 
-                child: const Text('Close')
+                onPressed: () => Navigator.pop(ctx, 'close'),
+                child: const Text('Close'),
               ),
               TextButton(
-                onPressed: () => Navigator.pop(ctx, 'save'), 
-                child: const Text('Save as PDF')
+                onPressed: () => Navigator.pop(ctx, 'save'),
+                child: const Text('Save as PDF'),
               ),
               AppButton(
-                label: 'Print Now', 
+                label: 'Print Now',
                 icon: Icons.print_outlined,
-                onPressed: () => Navigator.pop(ctx, 'print')
+                onPressed: () => Navigator.pop(ctx, 'print'),
               ),
             ],
           ),
@@ -311,8 +339,10 @@ class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
         if (printChoice == 'print' || printChoice == 'save') {
           setState(() => _isLoading = true);
           final shop = await ref.read(settingsRepositoryProvider).getSettings();
-          final partyBalance = await ref.read(databaseProvider).getPartyCurrentBalance(resultTxn.party.id);
-          
+          final partyBalance = await ref
+              .read(databaseProvider)
+              .getPartyCurrentBalance(resultTxn.party.id);
+
           Uint8List pdfBytes;
           if (resultTxn.transaction.type == 'sale') {
             pdfBytes = await PdfGeneratorService.generateInvoicePdf(
@@ -321,7 +351,10 @@ class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
               currentPartyBalance: partyBalance,
             );
           } else {
-            final prevBal = await repo.getBalanceBeforeTransaction(resultTxn.party.id, resultTxn.transaction.id);
+            final prevBal = await repo.getBalanceBeforeTransaction(
+              resultTxn.party.id,
+              resultTxn.transaction.id,
+            );
             pdfBytes = await PdfGeneratorService.generateReceiptPdf(
               shop: shop,
               details: resultTxn,
@@ -329,12 +362,15 @@ class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
               newBalance: partyBalance,
             );
           }
-          
+
           final fileName = '${resultTxn.transaction.transactionNo}.pdf';
           if (printChoice == 'print') {
             await PrintingService.printPdfBytes(pdfBytes, docName: fileName);
           } else if (printChoice == 'save') {
-            await PrintingService.savePdfToFile(pdfBytes, suggestedFileName: fileName);
+            await PrintingService.savePdfToFile(
+              pdfBytes,
+              suggestedFileName: fileName,
+            );
           }
         }
       }
@@ -392,6 +428,7 @@ class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
                     children: [
                       Expanded(
                         child: DropdownButtonFormField<String>(
+                          isExpanded: true,
                           initialValue: _selectedPartyId,
                           decoration: const InputDecoration(
                             labelText: 'Party *',
@@ -441,6 +478,7 @@ class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
                     Expanded(
                       flex: 3,
                       child: DropdownButtonFormField<TransactionType>(
+                        isExpanded: true,
                         initialValue: _selectedType,
                         decoration: const InputDecoration(
                           labelText: 'Transaction Type *',
@@ -568,6 +606,7 @@ class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
                     Expanded(
                       flex: 2,
                       child: DropdownButtonFormField<String>(
+                        isExpanded: true,
                         initialValue: _selectedPaymentMode,
                         decoration: const InputDecoration(
                           labelText: 'Payment Mode',
@@ -726,7 +765,9 @@ class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
                               decimal: false,
                             ),
                             validator: (v) {
-                              if (v == null || v.trim().isEmpty) return null; // handled by general flow if needed
+                              if (v == null || v.trim().isEmpty) {
+                                return null;
+                              }
                               final num = double.tryParse(v.trim());
                               if (num == null) return 'Enter a valid amount';
                               if (num < 0) return 'Cannot be negative';
@@ -738,6 +779,7 @@ class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
                         Expanded(
                           flex: 2,
                           child: DropdownButtonFormField<String>(
+                            isExpanded: true,
                             initialValue: _upfrontPaymentMode,
                             decoration: const InputDecoration(
                               labelText: 'Paid Mode',
@@ -776,7 +818,9 @@ class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
                   children: [
                     Text(
                       'Itemized Breakdown',
-                      style: AppTypography.label.copyWith(color: AppColors.mute),
+                      style: AppTypography.label.copyWith(
+                        color: AppColors.mute,
+                      ),
                     ),
                     AppButton(
                       label: 'Add Item',
@@ -787,134 +831,171 @@ class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                  ..._lineItems.asMap().entries.map((entry) {
-                    final idx = entry.key;
-                    final item = entry.value;
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 8.0),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            flex: 4,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                DropdownButtonFormField<String>(
-                                  initialValue: _jewelryProducts.contains(item['description']) 
-                                      ? item['description'] 
-                                      : (item['description'] == '' ? null : 'Custom...'),
-                                  decoration: const InputDecoration(
-                                    labelText: 'Select Product',
-                                  ),
-                                  items: [
-                                    ..._jewelryProducts.map((p) => DropdownMenuItem(
-                                      value: p,
-                                      child: Text(p, style: AppTypography.bodyMedium.copyWith(color: AppColors.ink)),
-                                    )),
-                                    DropdownMenuItem(
-                                      value: 'Custom...',
-                                      child: Text('Custom (Type manually)', style: AppTypography.bodyMedium.copyWith(color: AppColors.ink)),
-                                    ),
-                                  ],
-                                  onChanged: (val) {
-                                    setState(() {
-                                      if (val != 'Custom...') {
-                                        item['description'] = val;
-                                      } else {
-                                        item['description'] = '';
-                                      }
-                                    });
-                                  },
+                ..._lineItems.asMap().entries.map((entry) {
+                  final idx = entry.key;
+                  final item = entry.value;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          flex: 4,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              DropdownButtonFormField<String>(
+                                isExpanded: true,
+                                initialValue:
+                                    _jewelryProducts.contains(
+                                      item['description'],
+                                    )
+                                    ? item['description']
+                                    : (item['description'] == ''
+                                          ? null
+                                          : 'Custom...'),
+                                decoration: const InputDecoration(
+                                  labelText: 'Select Product',
                                 ),
-                                if (!_jewelryProducts.contains(item['description'])) ...[
-                                  const SizedBox(height: 8),
-                                  TextFormField(
-                                    initialValue: item['description'],
-                                    decoration: const InputDecoration(
-                                      labelText: 'Custom Item Name',
+                                items: [
+                                  ..._jewelryProducts.map(
+                                    (p) => DropdownMenuItem(
+                                      value: p,
+                                      child: Text(
+                                        p,
+                                        style: AppTypography.bodyMedium
+                                            .copyWith(color: AppColors.ink),
+                                      ),
                                     ),
-                                    onChanged: (val) => item['description'] = val,
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'Custom...',
+                                    child: Text(
+                                      'Custom (Type manually)',
+                                      style: AppTypography.bodyMedium.copyWith(
+                                        color: AppColors.ink,
+                                      ),
+                                    ),
                                   ),
                                 ],
+                                onChanged: (val) {
+                                  setState(() {
+                                    if (val != 'Custom...') {
+                                      item['description'] = val;
+                                    } else {
+                                      item['description'] = '';
+                                    }
+                                  });
+                                },
+                              ),
+                              if (!_jewelryProducts.contains(
+                                item['description'],
+                              )) ...[
+                                const SizedBox(height: 8),
+                                TextFormField(
+                                  initialValue: item['description'],
+                                  decoration: const InputDecoration(
+                                    labelText: 'Custom Item Name',
+                                  ),
+                                  onChanged: (val) => item['description'] = val,
+                                ),
                               ],
-                            ),
+                            ],
                           ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            flex: 2,
-                            child: TextFormField(
-                              initialValue: (item['quantity'] as num).toInt().toString(),
-                              decoration: const InputDecoration(
-                                labelText: 'Qty',
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          flex: 2,
+                          child: TextFormField(
+                            initialValue: (item['quantity'] as num)
+                                .toInt()
+                                .toString(),
+                            decoration: const InputDecoration(labelText: 'Qty'),
+                            keyboardType: TextInputType.number,
+                            onChanged: (val) {
+                              final parsed = double.tryParse(val) ?? 1.0;
+                              final qty = parsed < 0 ? parsed.abs() : parsed;
+                              item['quantity'] = qty;
+                              item['amount'] = qty * (item['rate'] as num);
+                              _recalculateAmountFromLineItems();
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          flex: 2,
+                          child: DropdownButtonFormField<String>(
+                            isExpanded: true,
+                            initialValue: item['unit'] as String? ?? 'PCS',
+                            decoration: const InputDecoration(
+                              labelText: 'Unit',
+                            ),
+                            items: const [
+                              DropdownMenuItem(
+                                value: 'PCS',
+                                child: Text('PCS'),
                               ),
-                              keyboardType: TextInputType.number,
-                              onChanged: (val) {
-                                final parsed = double.tryParse(val) ?? 1.0;
-                                final qty = parsed < 0 ? parsed.abs() : parsed;
-                                item['quantity'] = qty;
-                                item['amount'] = qty * (item['rate'] as num);
-                                _recalculateAmountFromLineItems();
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            flex: 2,
-                            child: DropdownButtonFormField<String>(
-                              initialValue: item['unit'] as String? ?? 'PCS',
-                              decoration: const InputDecoration(
-                                labelText: 'Unit',
+                              DropdownMenuItem(
+                                value: 'KGS',
+                                child: Text('KGS'),
                               ),
-                              items: const [
-                                DropdownMenuItem(value: 'PCS', child: Text('PCS')),
-                                DropdownMenuItem(value: 'PCS', child: Text('PCS')),
-                                DropdownMenuItem(value: 'KGS', child: Text('KGS')),
-                                DropdownMenuItem(value: 'LTR', child: Text('LTR')),
-                                DropdownMenuItem(value: 'MTR', child: Text('MTR')),
-                                DropdownMenuItem(value: 'PKT', child: Text('PKT')),
-                                DropdownMenuItem(value: 'BOX', child: Text('BOX')),
-                              ],
-                              onChanged: (val) {
-                                setState(() {
-                                  item['unit'] = val;
-                                });
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            flex: 2,
-                            child: TextFormField(
-                              initialValue: (item['rate'] as num).toInt().toString(),
-                              decoration: const InputDecoration(
-                                labelText: 'Rate',
-                                prefixText: 'Rs ',
+                              DropdownMenuItem(
+                                value: 'LTR',
+                                child: Text('LTR'),
                               ),
-                              keyboardType: TextInputType.number,
-                              onChanged: (val) {
-                                final parsed = double.tryParse(val) ?? 0.0;
-                                final rate = parsed < 0 ? parsed.abs() : parsed;
-                                item['rate'] = rate;
-                                item['amount'] =
-                                    (item['quantity'] as num) * rate;
-                                _recalculateAmountFromLineItems();
-                              },
-                            ),
+                              DropdownMenuItem(
+                                value: 'MTR',
+                                child: Text('MTR'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'PKT',
+                                child: Text('PKT'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'BOX',
+                                child: Text('BOX'),
+                              ),
+                            ],
+                            onChanged: (val) {
+                              setState(() {
+                                item['unit'] = val;
+                              });
+                            },
                           ),
-                          const SizedBox(width: 8),
-                          IconButton(
-                            icon: const Icon(
-                              Icons.delete_outline,
-                              size: 18,
-                              color: AppColors.error,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          flex: 2,
+                          child: TextFormField(
+                            initialValue: (item['rate'] as num)
+                                .toInt()
+                                .toString(),
+                            decoration: const InputDecoration(
+                              labelText: 'Rate',
+                              prefixText: 'Rs ',
                             ),
-                            onPressed: () => _removeLineItem(idx),
+                            keyboardType: TextInputType.number,
+                            onChanged: (val) {
+                              final parsed = double.tryParse(val) ?? 0.0;
+                              final rate = parsed < 0 ? parsed.abs() : parsed;
+                              item['rate'] = rate;
+                              item['amount'] = (item['quantity'] as num) * rate;
+                              _recalculateAmountFromLineItems();
+                            },
                           ),
-                        ],
-                      ),
-                    );
-                  }),
-
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton(
+                          icon: const Icon(
+                            Icons.delete_outline,
+                            size: 18,
+                            color: AppColors.error,
+                          ),
+                          onPressed: () => _removeLineItem(idx),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
 
                 const SizedBox(height: 24),
                 Row(

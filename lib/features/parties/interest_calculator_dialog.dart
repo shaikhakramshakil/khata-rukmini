@@ -260,6 +260,7 @@ class _InterestCalculatorDialogState
               else
                 partiesAsync.maybeWhen(
                   data: (parties) => DropdownButtonFormField<String>(
+                    isExpanded: true,
                     decoration: const InputDecoration(
                       labelText:
                           'Select Customer (to link calculation & post to ledger)',

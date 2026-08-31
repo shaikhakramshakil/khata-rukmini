@@ -251,6 +251,7 @@ class _PartyFormDialogState extends ConsumerState<PartyFormDialog> {
                       Expanded(
                         flex: 2,
                         child: DropdownButtonFormField<bool>(
+                          isExpanded: true,
                           initialValue: _isOpeningDebit,
                           decoration: const InputDecoration(labelText: 'Type'),
                           items: const [

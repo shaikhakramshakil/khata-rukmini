@@ -148,10 +148,13 @@ class TransactionDetailDialog extends ConsumerWidget {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  '${item.description} (${item.quantity} x ${AppFormatters.formatCurrency(item.rate)})',
-                                  style: AppTypography.bodyMedium,
+                                Expanded(
+                                  child: Text(
+                                    '${item.description} (${item.quantity} x ${AppFormatters.formatCurrency(item.rate)})',
+                                    style: AppTypography.bodyMedium,
+                                  ),
                                 ),
+                                const SizedBox(width: 8),
                                 Text(
                                   AppFormatters.formatCurrency(item.amount),
                                   style: AppTypography.codeMono,
@@ -290,11 +293,15 @@ class TransactionDetailDialog extends ConsumerWidget {
             label,
             style: AppTypography.bodyMedium.copyWith(color: AppColors.mute),
           ),
-          Text(
-            value,
-            style: isAmount
-                ? AppTypography.headingMedium.copyWith(color: AppColors.ink)
-                : AppTypography.label.copyWith(color: AppColors.ink),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: isAmount
+                  ? AppTypography.headingMedium.copyWith(color: AppColors.ink)
+                  : AppTypography.label.copyWith(color: AppColors.ink),
+            ),
           ),
         ],
       ),

@@ -86,7 +86,13 @@ class _PartyProfileScreenState extends ConsumerState<PartyProfileScreen> {
                       onPressed: onBack,
                     ),
                     const SizedBox(width: 8),
-                    Text(party.name, style: AppTypography.headingLarge),
+                    Flexible(
+                      child: Text(
+                        party.name,
+                        style: AppTypography.headingLarge,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                     const SizedBox(width: 12),
                     TypeBadge(label: party.type),
                     const Spacer(),

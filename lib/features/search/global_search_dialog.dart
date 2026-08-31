@@ -223,7 +223,13 @@ class _GlobalSearchDialogState extends ConsumerState<GlobalSearchDialog> {
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
       title: Row(
         children: [
-          Text(party.name, style: AppTypography.label),
+          Flexible(
+            child: Text(
+              party.name,
+              style: AppTypography.label,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
           const SizedBox(width: 8),
           TypeBadge(label: party.type),
         ],
@@ -250,10 +256,14 @@ class _GlobalSearchDialogState extends ConsumerState<GlobalSearchDialog> {
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            '${txn.transactionNo} • ${txn.type}',
-            style: AppTypography.label,
+          Expanded(
+            child: Text(
+              '${txn.transactionNo} • ${txn.type}',
+              style: AppTypography.label,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
+          const SizedBox(width: 8),
           Text(
             AppFormatters.formatCurrency(txn.amount),
             style: AppTypography.codeMono.copyWith(fontWeight: FontWeight.w600),
