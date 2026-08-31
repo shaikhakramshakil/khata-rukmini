@@ -63,7 +63,7 @@ class _RecycleBinScreenState extends ConsumerState<RecycleBinScreen> {
           return ListView.separated(
             padding: const EdgeInsets.all(16),
             itemCount: items.length,
-            separatorBuilder: (_, __) => const Divider(color: AppColors.hairline),
+            separatorBuilder: (context, _) => const Divider(color: AppColors.hairline),
             itemBuilder: (context, index) {
               final txn = items[index].transaction;
               final party = items[index].party;

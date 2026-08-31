@@ -4,7 +4,7 @@ class AppFormatters {
   static final NumberFormat _currencyFormat = NumberFormat.currency(
     locale: 'en_IN',
     symbol: 'Rs ',
-    decimalDigits: 2,
+    decimalDigits: 0,
   );
 
   static final NumberFormat _compactCurrencyFormat = NumberFormat.currency(

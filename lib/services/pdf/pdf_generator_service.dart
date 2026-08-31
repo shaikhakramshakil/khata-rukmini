@@ -317,7 +317,6 @@ class PdfGeneratorService {
     required double newBalance,
   }) async {
     final type = details.transaction.type;
-    final isPayment = type == 'paymentReceived' || type == 'paymentMade';
     final title = type == 'paymentReceived' 
         ? 'PAYMENT RECEIPT' 
         : (type == 'paymentMade' ? 'PAYMENT VOUCHER' : 'VOUCHER');
@@ -571,7 +570,7 @@ class PdfGeneratorService {
                       children: [
                         _tableCell('$idx'),
                         _tableCell(item.description),
-                        _tableCell('${item.quantity} ${item.unit ?? ''}'),
+                        _tableCell('${item.quantity.toInt()} ${item.unit ?? ''}'),
                         _tableCell(
                           formatPdfCurrency(item.rate),
                           align: pw.TextAlign.right,

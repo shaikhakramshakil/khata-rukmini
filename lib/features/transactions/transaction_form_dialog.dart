@@ -58,9 +58,10 @@ class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
   String _upfrontPaymentMode = 'Cash';
   final _upfrontRefController = TextEditingController();
 
-  // Optional Line items
-  bool _showLineItems = false;
-  final List<Map<String, dynamic>> _lineItems = [];
+  // Line items (Mandatory visible)
+  final List<Map<String, dynamic>> _lineItems = [
+    {'description': '', 'quantity': 1, 'unit': 'PCS', 'rate': 0, 'amount': 0}
+  ];
 
   bool _isLoading = false;
 
@@ -122,13 +123,12 @@ class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
     final items = await db.getLineItemsForTransaction(transactionId);
     if (items.isNotEmpty && mounted) {
       setState(() {
-        _showLineItems = true;
         _lineItems.clear();
         for (final item in items) {
           _lineItems.add({
             'description': item.description,
             'quantity': item.quantity,
-            'unit': item.unit ?? 'NOS',
+            'unit': item.unit ?? 'PCS',
             'rate': item.rate,
             'amount': item.amount,
           });
@@ -157,7 +157,7 @@ class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
       for (final item in _lineItems) {
         total += (item['amount'] as num?)?.toDouble() ?? 0.0;
       }
-      _amountController.text = total.toStringAsFixed(2);
+      _amountController.text = total.toInt().toString();
     }
   }
 
@@ -166,7 +166,7 @@ class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
       _lineItems.add({
         'description': '',
         'quantity': 1.0,
-        'unit': 'NOS',
+        'unit': 'PCS',
         'rate': 0.0,
         'amount': 0.0,
       });
@@ -211,7 +211,7 @@ class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
           paymentMode: _selectedPaymentMode,
           referenceNo: _refController.text,
           description: _descController.text,
-          lineItems: _showLineItems ? _lineItems : [],
+          lineItems: _lineItems.where((i) => i['description'] != '').toList(),
           paymentDetails: {
             'referenceNo': _refController.text.trim().isNotEmpty
                 ? _refController.text.trim()
@@ -251,7 +251,7 @@ class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
           paymentMode: _selectedPaymentMode,
           referenceNo: _refController.text,
           description: _descController.text,
-          lineItems: _showLineItems ? _lineItems : [],
+          lineItems: _lineItems.where((i) => i['description'] != '').toList(),
           paymentDetails: {
             'referenceNo': _refController.text.trim().isNotEmpty
                 ? _refController.text.trim()
@@ -483,7 +483,7 @@ class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
                           prefixText: 'Rs ',
                         ),
                         keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
+                          decimal: false,
                         ),
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) {
@@ -526,7 +526,7 @@ class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
                   TextFormField(
                     controller: _interestRateController,
                     keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
+                      decimal: false,
                     ),
                     decoration: const InputDecoration(
                       labelText: 'Interest Rate (% / month)',
@@ -658,7 +658,7 @@ class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
                               prefixText: 'Rs ',
                             ),
                             keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true,
+                              decimal: false,
                             ),
                             validator: (v) {
                               if (v == null || v.trim().isEmpty) return null; // handled by general flow if needed
@@ -709,38 +709,19 @@ class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    TextButton.icon(
-                      icon: Icon(
-                        _showLineItems
-                            ? Icons.expand_less
-                            : Icons.add_circle_outline,
-                        size: 16,
-                      ),
-                      label: Text(
-                        _showLineItems
-                            ? 'Hide Line Items'
-                            : 'Add Itemized Breakdown (Optional)',
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _showLineItems = !_showLineItems;
-                          if (_showLineItems && _lineItems.isEmpty) {
-                            _addLineItem();
-                          }
-                        });
-                      },
+                    Text(
+                      'Itemized Breakdown',
+                      style: AppTypography.label.copyWith(color: AppColors.mute),
                     ),
-                    if (_showLineItems)
-                      AppButton(
-                        label: 'Add Item',
-                        icon: Icons.add,
-                        variant: AppButtonVariant.secondary,
-                        onPressed: _addLineItem,
-                      ),
+                    AppButton(
+                      label: 'Add Item',
+                      icon: Icons.add,
+                      variant: AppButtonVariant.secondary,
+                      onPressed: _addLineItem,
+                    ),
                   ],
                 ),
-                if (_showLineItems) ...[
-                  const SizedBox(height: 8),
+                const SizedBox(height: 8),
                   ..._lineItems.asMap().entries.map((entry) {
                     final idx = entry.key;
                     final item = entry.value;
@@ -754,7 +735,7 @@ class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 DropdownButtonFormField<String>(
-                                  value: _jewelryProducts.contains(item['description']) 
+                                  initialValue: _jewelryProducts.contains(item['description']) 
                                       ? item['description'] 
                                       : (item['description'] == '' ? null : 'Custom...'),
                                   decoration: const InputDecoration(
@@ -763,11 +744,11 @@ class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
                                   items: [
                                     ..._jewelryProducts.map((p) => DropdownMenuItem(
                                       value: p,
-                                      child: Text(p, style: AppTypography.bodySmall),
+                                      child: Text(p, style: AppTypography.bodyMedium.copyWith(color: AppColors.ink)),
                                     )),
-                                    const DropdownMenuItem(
+                                    DropdownMenuItem(
                                       value: 'Custom...',
-                                      child: Text('Custom (Type manually)', style: AppTypography.bodySmall),
+                                      child: Text('Custom (Type manually)', style: AppTypography.bodyMedium.copyWith(color: AppColors.ink)),
                                     ),
                                   ],
                                   onChanged: (val) {
@@ -797,7 +778,7 @@ class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
                           Expanded(
                             flex: 2,
                             child: TextFormField(
-                              initialValue: item['quantity'].toString(),
+                              initialValue: (item['quantity'] as num).toInt().toString(),
                               decoration: const InputDecoration(
                                 labelText: 'Qty',
                               ),
@@ -815,12 +796,12 @@ class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
                           Expanded(
                             flex: 2,
                             child: DropdownButtonFormField<String>(
-                              value: item['unit'] as String? ?? 'NOS',
+                              initialValue: item['unit'] as String? ?? 'PCS',
                               decoration: const InputDecoration(
                                 labelText: 'Unit',
                               ),
                               items: const [
-                                DropdownMenuItem(value: 'NOS', child: Text('NOS')),
+                                DropdownMenuItem(value: 'PCS', child: Text('PCS')),
                                 DropdownMenuItem(value: 'PCS', child: Text('PCS')),
                                 DropdownMenuItem(value: 'KGS', child: Text('KGS')),
                                 DropdownMenuItem(value: 'LTR', child: Text('LTR')),
@@ -839,7 +820,7 @@ class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
                           Expanded(
                             flex: 2,
                             child: TextFormField(
-                              initialValue: item['rate'].toString(),
+                              initialValue: (item['rate'] as num).toInt().toString(),
                               decoration: const InputDecoration(
                                 labelText: 'Rate',
                                 prefixText: 'Rs ',
@@ -868,7 +849,7 @@ class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
                       ),
                     );
                   }),
-                ],
+
 
                 const SizedBox(height: 24),
                 Row(
