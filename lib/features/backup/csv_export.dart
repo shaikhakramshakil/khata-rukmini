@@ -11,11 +11,20 @@ class CsvExportService {
 
   String _escapeCsv(String? input) {
     if (input == null) return '';
-    if (input.contains(',') || input.contains('"') || input.contains('\n')) {
-      final escaped = input.replaceAll('"', '""');
+    var value = input;
+    // Prevent formula injection: prefix =, +, -, @, tab, carriage return.
+    if (value.startsWith(RegExp(r'[=+\-@\t\r]'))) {
+      value = "'$value";
+    }
+    if (value.contains(',') ||
+        value.contains('"') ||
+        value.contains('\n') ||
+        value.contains('\r') ||
+        value.startsWith("'")) {
+      final escaped = value.replaceAll('"', '""');
       return '"$escaped"';
     }
-    return input;
+    return value;
   }
 
   Future<File> exportTransactionsToCsv(
@@ -63,7 +72,8 @@ class CsvExportService {
     final csvFile = File(
       p.join(directoryPath, 'khata_transactions_$dateStr.csv'),
     );
-    await csvFile.writeAsString(buffer.toString(), encoding: utf8);
+    // Leading BOM so Windows Excel renders Hindi/Unicode correctly.
+    await csvFile.writeAsString('\uFEFF${buffer.toString()}', encoding: utf8);
     return csvFile;
   }
 }

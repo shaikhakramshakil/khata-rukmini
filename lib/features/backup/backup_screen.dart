@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import '../../core/theme/app_colors.dart';
@@ -42,15 +43,21 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
         return; // User canceled
       }
 
-      final dateStr = DateTime.now()
-          .toIso8601String()
-          .replaceAll(':', '-')
-          .split('.')[0];
+      final dateStr = DateFormat(
+        'yyyy-MM-dd_HHmmss',
+      ).format(DateTime.now());
       final backupFile = File(
         p.join(selectedDirectory, 'khata_backup_$dateStr.sqlite'),
       );
 
       await dbFile.copy(backupFile.path);
+      // Copy WAL/SHM sidecars so recent sales are not lost.
+      for (final suffix in ['-wal', '-shm']) {
+        final sidecar = File('${dbFile.path}$suffix');
+        if (await sidecar.exists()) {
+          await sidecar.copy('${backupFile.path}$suffix');
+        }
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -72,8 +79,9 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
 
   Future<void> _restoreData() async {
     setState(() => _isWorking = true);
+    var dbClosed = false;
     try {
-      List<PlatformFile> result = await FilePicker.pickFiles(
+      final result = await FilePicker.pickFiles(
         dialogTitle: 'Select Backup File to Restore',
         type: FileType.custom,
         allowedExtensions: ['sqlite', 'db'],
@@ -91,6 +99,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
       // Close the active database connection before overwriting
       final db = ref.read(databaseProvider);
       await db.close();
+      dbClosed = true;
 
       // Copy over the current database
       await backupFile.copy(dbFile.path);
@@ -131,6 +140,13 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
         ).showSnackBar(SnackBar(content: Text('Restore Failed: $e')));
       }
     } finally {
+      // Always reopen even on failure so the app is not stuck with a closed DB.
+      if (dbClosed) {
+        ref.invalidate(databaseProvider);
+        ref.invalidate(shopSettingsProvider);
+        ref.invalidate(partiesListProvider);
+        ref.invalidate(dashboardStatsProvider);
+      }
       if (mounted) setState(() => _isWorking = false);
     }
   }
@@ -138,6 +154,11 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
   Future<void> _exportCsv() async {
     setState(() => _isWorking = true);
     try {
+      if (_startDate != null &&
+          _endDate != null &&
+          _startDate!.isAfter(_endDate!)) {
+        throw Exception('From date must not be after To date.');
+      }
       String? selectedDirectory = await FilePicker.getDirectoryPath(
         dialogTitle: 'Select Location for CSV Export',
       );

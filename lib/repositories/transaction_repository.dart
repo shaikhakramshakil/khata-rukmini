@@ -135,14 +135,20 @@ class TransactionRepository {
     final savedLineItems = <TransactionLineItem>[];
     if (lineItems != null && lineItems.isNotEmpty) {
       final lineCompanions = lineItems.map((item) {
+        final desc = (item['description'] as String?)?.trim();
+        if (desc == null || desc.isEmpty) {
+          throw Exception('Line item description is required');
+        }
+        final amt = (item['amount'] as num?)?.toDouble();
+        if (amt == null) throw Exception('Line item amount is required');
         return TransactionLineItemsCompanion(
           id: Value(_uuid.v4()),
           transactionId: Value(txnId),
-          description: Value(item['description'] as String),
+          description: Value(desc),
           quantity: Value((item['quantity'] as num?)?.toDouble() ?? 1.0),
           unit: Value(item['unit'] as String?),
           rate: Value((item['rate'] as num?)?.toDouble() ?? 0.0),
-          amount: Value((item['amount'] as num).toDouble()),
+          amount: Value(amt),
         );
       }).toList();
       await _db.replaceLineItems(txnId, lineCompanions);
@@ -258,14 +264,20 @@ class TransactionRepository {
 
     if (lineItems != null) {
       final lineCompanions = lineItems.map((item) {
+        final desc = (item['description'] as String?)?.trim();
+        if (desc == null || desc.isEmpty) {
+          throw Exception('Line item description is required');
+        }
+        final amt = (item['amount'] as num?)?.toDouble();
+        if (amt == null) throw Exception('Line item amount is required');
         return TransactionLineItemsCompanion(
           id: Value(_uuid.v4()),
           transactionId: Value(id),
-          description: Value(item['description'] as String),
+          description: Value(desc),
           quantity: Value((item['quantity'] as num?)?.toDouble() ?? 1.0),
           unit: Value(item['unit'] as String?),
           rate: Value((item['rate'] as num?)?.toDouble() ?? 0.0),
-          amount: Value((item['amount'] as num).toDouble()),
+          amount: Value(amt),
         );
       }).toList();
       await _db.replaceLineItems(id, lineCompanions);
@@ -283,6 +295,23 @@ class TransactionRepository {
         notes: Value(paymentDetails['notes']),
       );
       await _db.setPaymentDetail(payCompanion);
+    }
+
+    // If this sale has a linked upfront payment, keep it in sync.
+    if (existing.linkedTransactionId != null) {
+      final linked = await _db.getTransactionById(
+        existing.linkedTransactionId!,
+      );
+      if (linked != null && linked.type == TransactionType.paymentReceived.name) {
+        await _db.updateTransaction(
+          linked.copyWith(
+            date: date,
+            amount: amount,
+            credit: amount,
+            updatedAt: DateTime.now(),
+          ),
+        );
+      }
     }
 
     // Notify AFTER all child records are fully committed

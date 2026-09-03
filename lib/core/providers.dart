@@ -55,7 +55,7 @@ final backupServiceProvider = Provider<BackupService>((ref) {
 /// Shop Settings state
 final FutureProvider<ShopSetting> shopSettingsProvider =
     FutureProvider<ShopSetting>((ref) async {
-      return ref.watch(settingsRepositoryProvider).getSettings();
+      return ref.read(settingsRepositoryProvider).getSettings();
     });
 
 /// Parties with balances
@@ -65,7 +65,7 @@ partiesListProvider = FutureProvider.family<List<PartyWithBalance>, String?>((
   typeFilter,
 ) async {
   return ref
-      .watch(partyRepositoryProvider)
+      .read(partyRepositoryProvider)
       .getPartiesWithBalances(typeFilter: typeFilter);
 });
 
@@ -76,8 +76,8 @@ partyProfileProvider =
       ref,
       partyId,
     ) async {
-      final partyRepo = ref.watch(partyRepositoryProvider);
-      final txnRepo = ref.watch(transactionRepositoryProvider);
+      final partyRepo = ref.read(partyRepositoryProvider);
+      final txnRepo = ref.read(transactionRepositoryProvider);
       final party = await partyRepo.getPartyWithBalance(partyId);
       final txns = await txnRepo.getAllActiveTransactions(
         partyId: partyId,
@@ -111,8 +111,8 @@ class DashboardStats {
 
 final FutureProvider<DashboardStats> dashboardStatsProvider =
     FutureProvider<DashboardStats>((ref) async {
-      final partyRepo = ref.watch(partyRepositoryProvider);
-      final txnRepo = ref.watch(transactionRepositoryProvider);
+      final partyRepo = ref.read(partyRepositoryProvider);
+      final txnRepo = ref.read(transactionRepositoryProvider);
 
       final parties = await partyRepo.getPartiesWithBalances();
 

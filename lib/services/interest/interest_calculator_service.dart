@@ -73,7 +73,22 @@ class InterestCalculatorService {
     InterestRateType rateType = InterestRateType.monthly,
     InterestCalculationMethod method = InterestCalculationMethod.simple,
   }) {
-    if (principal <= 0 || rate <= 0) {
+    if (!(principal > 0) || !(rate > 0)) {
+      return InterestCalculationResult(
+        principal: principal,
+        rate: rate,
+        rateType: rateType,
+        method: method,
+        fromDate: fromDate,
+        toDate: toDate,
+        totalDays: 0,
+        months: 0,
+        remainingDays: 0,
+        interestAmount: 0.0,
+        totalAmount: principal,
+      );
+    }
+    if (toDate.isBefore(fromDate)) {
       return InterestCalculationResult(
         principal: principal,
         rate: rate,
@@ -121,15 +136,15 @@ class InterestCalculatorService {
 
     // Round to 2 decimal places
     interest = (interest * 100).roundToDouble() / 100;
-    final total = principal + interest;
+    final total = ((principal + interest) * 100).roundToDouble() / 100;
 
     return InterestCalculationResult(
       principal: principal,
       rate: rate,
       rateType: rateType,
       method: method,
-      fromDate: fromDate,
-      toDate: toDate,
+      fromDate: start,
+      toDate: end,
       totalDays: totalDays,
       months: months,
       remainingDays: remainingDays,

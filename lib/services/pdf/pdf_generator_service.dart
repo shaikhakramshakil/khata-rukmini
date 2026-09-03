@@ -24,13 +24,19 @@ class PdfGeneratorService {
   }
 
   static String formatPdfBalance(double balance) {
-    if (balance > 0.0001) {
+    if (balance > 0.005) {
       return '${formatPdfCurrency(balance)} (Dr)';
-    } else if (balance < -0.0001) {
+    } else if (balance < -0.005) {
       return '${formatPdfCurrency(balance.abs())} (Cr)';
     } else {
       return '${formatPdfCurrency(0)} (Nil)';
     }
+  }
+
+  static String formatPdfQuantity(double quantity, String? unit) {
+    var s = quantity.toStringAsFixed(3).replaceAll(RegExp(r'\.?0+$'), '');
+    if (s.isEmpty) s = '0';
+    return unit?.trim().isNotEmpty == true ? '$s ${unit!.trim()}' : s;
   }
 
   /// Builds A4 Party Statement PDF
@@ -87,12 +93,14 @@ class PdfGeneratorService {
                   color: inkColor,
                 ),
               ),
-              pw.Text(
-                statement.partyName,
-                style: pw.TextStyle(
-                  fontSize: 12,
-                  fontWeight: pw.FontWeight.bold,
-                  color: inkColor,
+              pw.Expanded(
+                child: pw.Text(
+                  statement.partyName,
+                  style: pw.TextStyle(
+                    fontSize: 12,
+                    fontWeight: pw.FontWeight.bold,
+                    color: inkColor,
+                  ),
                 ),
               ),
             ],
@@ -115,12 +123,14 @@ class PdfGeneratorService {
                   color: inkColor,
                 ),
               ),
-              pw.Text(
-                'From ${DateFormat('dd/MM/yyyy').format(statement.fromDate)} to ${DateFormat('dd/MM/yyyy').format(statement.toDate)}',
-                style: pw.TextStyle(
-                  fontSize: 12,
-                  fontWeight: pw.FontWeight.bold,
-                  color: inkColor,
+              pw.Expanded(
+                child: pw.Text(
+                  'From ${DateFormat('dd/MM/yyyy').format(statement.fromDate)} to ${DateFormat('dd/MM/yyyy').format(statement.toDate)}',
+                  style: pw.TextStyle(
+                    fontSize: 12,
+                    fontWeight: pw.FontWeight.bold,
+                    color: inkColor,
+                  ),
                 ),
               ),
             ],
@@ -324,14 +334,13 @@ class PdfGeneratorService {
     final pdf = pw.Document();
 
     pdf.addPage(
-      pw.Page(
+      pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(36),
-        build: (context) => pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
-          children: [
-            _buildPdfShopHeader(shop, title),
-            pw.SizedBox(height: 20),
+        footer: (context) => _buildPdfFooter(context),
+        build: (context) => [
+          _buildPdfShopHeader(shop, title),
+          pw.SizedBox(height: 20),
             pw.Container(
               padding: const pw.EdgeInsets.all(16),
               decoration: pw.BoxDecoration(
@@ -366,8 +375,8 @@ class PdfGeneratorService {
                     'Received From / Party:',
                     details.party.name,
                   ),
-                  if (details.party.phone != null)
-                    _buildPdfKeyValue('Phone:', details.party.phone!),
+                  if (details.party.phone?.trim().isNotEmpty == true)
+                    _buildPdfKeyValue('Phone:', details.party.phone!.trim()),
                   _buildPdfKeyValue(
                     'Payment Mode:',
                     details.transaction.paymentMode ?? 'Cash',
@@ -422,7 +431,7 @@ class PdfGeneratorService {
                 ],
               ),
             ),
-            pw.Spacer(),
+            pw.SizedBox(height: 24),
             pw.Row(
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
@@ -443,7 +452,6 @@ class PdfGeneratorService {
               ],
             ),
           ],
-        ),
       ),
     );
 
@@ -459,14 +467,13 @@ class PdfGeneratorService {
     final pdf = pw.Document();
 
     pdf.addPage(
-      pw.Page(
+      pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(36),
-        build: (context) => pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
-          children: [
-            _buildPdfShopHeader(shop, 'SALE INVOICE'),
-            pw.SizedBox(height: 16),
+        footer: (context) => _buildPdfFooter(context),
+        build: (context) => [
+          _buildPdfShopHeader(shop, 'SALE INVOICE'),
+          pw.SizedBox(height: 16),
             // Buyer & Invoice details
             pw.Container(
               padding: const pw.EdgeInsets.all(12),
@@ -497,17 +504,17 @@ class PdfGeneratorService {
                           color: inkColor,
                         ),
                       ),
-                      if (details.party.phone != null)
+                      if (details.party.phone?.trim().isNotEmpty == true)
                         pw.Text(
-                          'Phone: ${details.party.phone}',
+                          'Phone: ${details.party.phone!.trim()}',
                           style: const pw.TextStyle(
                             fontSize: 10,
                             color: muteColor,
                           ),
                         ),
-                      if (details.party.address != null)
+                      if (details.party.address?.trim().isNotEmpty == true)
                         pw.Text(
-                          'Address: ${details.party.address}',
+                          'Address: ${details.party.address!.trim()}',
                           style: const pw.TextStyle(
                             fontSize: 10,
                             color: muteColor,
@@ -570,7 +577,9 @@ class PdfGeneratorService {
                       children: [
                         _tableCell('$idx'),
                         _tableCell(item.description),
-                        _tableCell('${item.quantity.toInt()} ${item.unit ?? ''}'),
+                        _tableCell(
+                          formatPdfQuantity(item.quantity, item.unit),
+                        ),
                         _tableCell(
                           formatPdfCurrency(item.rate),
                           align: pw.TextAlign.right,
@@ -652,7 +661,7 @@ class PdfGeneratorService {
               ),
             ],
 
-            pw.Spacer(),
+            pw.SizedBox(height: 24),
             pw.Row(
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
@@ -673,7 +682,6 @@ class PdfGeneratorService {
               ],
             ),
           ],
-        ),
       ),
     );
 

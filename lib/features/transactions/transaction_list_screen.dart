@@ -173,7 +173,13 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                         typeFilter: _typeFilter,
                       ),
                 builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Text('Failed to load: ${snapshot.error}'),
+                    );
+                  }
+                  if (snapshot.connectionState == ConnectionState.waiting ||
+                      !snapshot.hasData) {
                     return const Center(child: CircularProgressIndicator());
                   }
 

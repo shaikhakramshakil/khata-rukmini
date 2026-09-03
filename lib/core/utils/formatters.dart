@@ -4,13 +4,13 @@ class AppFormatters {
   static final NumberFormat _currencyFormat = NumberFormat.currency(
     locale: 'en_IN',
     symbol: 'Rs ',
-    decimalDigits: 0,
+    decimalDigits: 2,
   );
 
   static final NumberFormat _compactCurrencyFormat = NumberFormat.currency(
     locale: 'en_IN',
     symbol: 'Rs ',
-    decimalDigits: 0,
+    decimalDigits: 2,
   );
 
   static final DateFormat _displayDateFormat = DateFormat('dd MMM yyyy');
@@ -33,9 +33,9 @@ class AppFormatters {
   /// Net negative balance (< 0) means Credit (Cr) -> Shop owes party.
   /// Zero balance means Nil / Settled.
   static String formatBalance(double balance, {bool forceDecimals = false}) {
-    if (balance > 0.0001) {
+    if (balance > 0.005) {
       return '${formatCurrency(balance, forceDecimals: forceDecimals)} Dr';
-    } else if (balance < -0.0001) {
+    } else if (balance < -0.005) {
       return '${formatCurrency(balance.abs(), forceDecimals: forceDecimals)} Cr';
     } else {
       return '${formatCurrency(0, forceDecimals: forceDecimals)} (Nil)';

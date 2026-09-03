@@ -1,7 +1,7 @@
 [Setup]
 AppId={{8B1963A9-7A87-4340-9E11-30D1B0ED7502}
 AppName=Rukmini Khata
-AppVersion=1.0.0
+AppVersion=1.0.1
 AppPublisher=Shaikh Akram Shakil
 DefaultDirName={autopf}\Rukmini Khata
 DisableProgramGroupPage=yes

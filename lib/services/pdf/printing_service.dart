@@ -4,10 +4,15 @@ import 'package:printing/printing.dart';
 
 class PrintingService {
   static Future<bool> printPdfBytes(Uint8List bytes, {String? docName}) async {
-    return Printing.layoutPdf(
-      onLayout: (format) async => bytes,
-      name: docName ?? 'Document.pdf',
-    );
+    try {
+      await Printing.layoutPdf(
+        onLayout: (format) async => bytes,
+        name: docName ?? 'Document.pdf',
+      );
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   static Future<String?> savePdfToFile(

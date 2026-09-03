@@ -35,7 +35,9 @@ class _GlobalSearchDialogState extends ConsumerState<GlobalSearchDialog> {
   @override
   void initState() {
     super.initState();
-    _focusNode.requestFocus();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _focusNode.requestFocus();
+    });
     _searchController.addListener(_onSearchChanged);
   }
 
@@ -70,7 +72,9 @@ class _GlobalSearchDialogState extends ConsumerState<GlobalSearchDialog> {
       final txns = await db.searchTransactions(query);
       final payments = await db.searchPaymentDetails(query);
 
-      if (mounted) {
+      // Drop stale results if the user typed something newer meanwhile.
+      if (!mounted || _searchController.text.trim() != query) return;
+      {
         setState(() {
           _partyResults = parties;
           _txnResults = txns;
@@ -306,11 +310,13 @@ class _GlobalSearchDialogState extends ConsumerState<GlobalSearchDialog> {
         color: AppColors.mute,
       ),
       onTap: () async {
+        final onSelect = widget.onSelectTransaction;
+        final txnId = payment.transactionId;
         Navigator.of(context).pop();
         final db = ref.read(databaseProvider);
-        final txn = await db.getTransactionById(payment.transactionId);
+        final txn = await db.getTransactionById(txnId);
         if (txn != null) {
-          widget.onSelectTransaction?.call(txn);
+          onSelect?.call(txn);
         }
       },
     );

@@ -202,6 +202,12 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
+  Future<int> restoreParty(String id) {
+    return (update(parties)..where((tbl) => tbl.id.equals(id))).write(
+      const PartiesCompanion(deletedAt: Value(null)),
+    );
+  }
+
   // --- Transactions Queries ---
 
   /// Get active transactions for a party sorted chronologically (date ASC, createdAt ASC, id ASC)
@@ -315,7 +321,11 @@ class AppDatabase extends _$AppDatabase {
   ) async {
     final query =
         select(transactions).join([
-            innerJoin(parties, parties.id.equalsExp(transactions.partyId)),
+            innerJoin(
+              parties,
+              parties.id.equalsExp(transactions.partyId) &
+                  parties.deletedAt.isNull(),
+            ),
           ])
           ..where(transactions.deletedAt.isNull())
           ..orderBy([
@@ -342,7 +352,11 @@ class AppDatabase extends _$AppDatabase {
   }) async {
     final query =
         select(transactions).join([
-          innerJoin(parties, parties.id.equalsExp(transactions.partyId)),
+          innerJoin(
+            parties,
+            parties.id.equalsExp(transactions.partyId) &
+                parties.deletedAt.isNull(),
+          ),
         ])..orderBy([
           OrderingTerm.desc(transactions.date),
           OrderingTerm.desc(transactions.createdAt),
@@ -380,7 +394,11 @@ class AppDatabase extends _$AppDatabase {
   ) async {
     final query =
         select(transactions).join([
-            innerJoin(parties, parties.id.equalsExp(transactions.partyId)),
+            innerJoin(
+              parties,
+              parties.id.equalsExp(transactions.partyId) &
+                  parties.deletedAt.isNull(),
+            ),
           ])
           ..where(
             transactions.deletedAt.isNull() &

@@ -81,6 +81,8 @@ class _StatementScreenState extends ConsumerState<StatementScreen> {
     });
   }
 
+  bool get _isDateRangeValid => !_fromDate.isAfter(_toDate);
+
   @override
   Widget build(BuildContext context) {
     final partiesAsync = ref.watch(partiesListProvider(null));
@@ -173,7 +175,9 @@ class _StatementScreenState extends ConsumerState<StatementScreen> {
                           }
                           return DropdownButtonFormField<String>(
                             isExpanded: true,
-                            initialValue: _selectedPartyId,
+                            key: ValueKey(_selectedPartyId),
+                            // ignore: deprecated_member_use
+                            value: _selectedPartyId,
                             decoration: const InputDecoration(
                               labelText: 'Select Party',
                             ),
@@ -321,9 +325,13 @@ class _StatementScreenState extends ConsumerState<StatementScreen> {
 
             // Statement View
             Expanded(
-              child: _isGeneralLedger
-                  ? _buildGeneralLedgerView(stmtRepo)
-                  : _buildPartyStatementView(stmtRepo),
+              child: !_isDateRangeValid
+                  ? const Center(
+                      child: Text('From date must not be after To date.'),
+                    )
+                  : _isGeneralLedger
+                      ? _buildGeneralLedgerView(stmtRepo)
+                      : _buildPartyStatementView(stmtRepo),
             ),
           ],
         ),
@@ -343,7 +351,11 @@ class _StatementScreenState extends ConsumerState<StatementScreen> {
         toDate: _toDate,
       ),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) {
+        if (snapshot.hasError) {
+          return Center(child: Text('Failed to load: ${snapshot.error}'));
+        }
+        if (snapshot.connectionState == ConnectionState.waiting ||
+            !snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
 
@@ -582,7 +594,11 @@ class _StatementScreenState extends ConsumerState<StatementScreen> {
     return FutureBuilder<GeneralLedgerData>(
       future: stmtRepo.getGeneralLedger(fromDate: _fromDate, toDate: _toDate),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) {
+        if (snapshot.hasError) {
+          return Center(child: Text('Failed to load: ${snapshot.error}'));
+        }
+        if (snapshot.connectionState == ConnectionState.waiting ||
+            !snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
 
