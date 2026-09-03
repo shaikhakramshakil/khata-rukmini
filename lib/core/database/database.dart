@@ -39,7 +39,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? e]) : super(e ?? _openConnection());
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration {
@@ -69,6 +69,9 @@ class AppDatabase extends _$AppDatabase {
         }
         if (from < 4) {
           await m.addColumn(transactionLineItems, transactionLineItems.unit);
+        }
+        if (from < 5) {
+          await m.addColumn(shopSettings, shopSettings.invoicesDirectory);
         }
       },
       beforeOpen: (details) async {
@@ -575,18 +578,46 @@ class AppDatabase extends _$AppDatabase {
         .get();
   }
 
-  Future<List<TransactionEntry>> searchTransactions(String query) {
+  Future<List<TransactionWithParty>> searchTransactionsWithParty(
+    String query,
+  ) async {
     final q = '%${query.trim()}%';
-    return (select(transactions)
-          ..where(
-            (tbl) =>
-                tbl.deletedAt.isNull() &
-                (tbl.transactionNo.like(q) |
-                    tbl.referenceNo.like(q) |
-                    tbl.description.like(q)),
-          )
-          ..limit(20))
-        .get();
+    final rows =
+        await (select(transactions).join([
+              innerJoin(
+                parties,
+                parties.id.equalsExp(transactions.partyId) &
+                    parties.deletedAt.isNull(),
+              ),
+            ])
+              ..where(
+                transactions.deletedAt.isNull() &
+                    (transactions.transactionNo.like(q) |
+                        transactions.referenceNo.like(q) |
+                        transactions.description.like(q) |
+                        parties.name.like(q) |
+                        parties.phone.like(q)),
+              )
+              ..orderBy([
+                OrderingTerm.desc(transactions.date),
+                OrderingTerm.desc(transactions.createdAt),
+              ])
+              ..limit(25))
+            .get();
+
+    return rows
+        .map(
+          (row) => TransactionWithParty(
+            row.readTable(transactions),
+            row.readTable(parties),
+          ),
+        )
+        .toList();
+  }
+
+  Future<List<TransactionEntry>> searchTransactions(String query) async {
+    final list = await searchTransactionsWithParty(query);
+    return list.map((e) => e.transaction).toList();
   }
 
   Future<List<PaymentDetail>> searchPaymentDetails(String query) {

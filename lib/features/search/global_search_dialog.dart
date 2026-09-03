@@ -27,7 +27,7 @@ class _GlobalSearchDialogState extends ConsumerState<GlobalSearchDialog> {
   final _focusNode = FocusNode();
 
   List<Party> _partyResults = [];
-  List<TransactionEntry> _txnResults = [];
+  List<TransactionWithParty> _txnResults = [];
   List<PaymentDetail> _paymentResults = [];
   bool _isSearching = false;
   Timer? _debounceTimer;
@@ -69,7 +69,7 @@ class _GlobalSearchDialogState extends ConsumerState<GlobalSearchDialog> {
       final db = ref.read(databaseProvider);
 
       final parties = await db.searchParties(query);
-      final txns = await db.searchTransactions(query);
+      final txns = await db.searchTransactionsWithParty(query);
       final payments = await db.searchPaymentDetails(query);
 
       // Drop stale results if the user typed something newer meanwhile.
@@ -253,7 +253,9 @@ class _GlobalSearchDialogState extends ConsumerState<GlobalSearchDialog> {
     );
   }
 
-  Widget _buildTxnRow(TransactionEntry txn) {
+  Widget _buildTxnRow(TransactionWithParty item) {
+    final txn = item.transaction;
+    final party = item.party;
     return ListTile(
       dense: true,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
@@ -262,7 +264,7 @@ class _GlobalSearchDialogState extends ConsumerState<GlobalSearchDialog> {
         children: [
           Expanded(
             child: Text(
-              '${txn.transactionNo} • ${txn.type}',
+              '${txn.transactionNo} • ${party.name}',
               style: AppTypography.label,
               overflow: TextOverflow.ellipsis,
             ),
@@ -275,7 +277,7 @@ class _GlobalSearchDialogState extends ConsumerState<GlobalSearchDialog> {
         ],
       ),
       subtitle: Text(
-        '${AppFormatters.formatDate(txn.date)}${txn.description != null ? ' • ${txn.description}' : ''}',
+        '${txn.type.toUpperCase()} • ${AppFormatters.formatDate(txn.date)}${txn.description != null ? ' • ${txn.description}' : ''}',
         style: AppTypography.bodySmall,
       ),
       trailing: const Icon(

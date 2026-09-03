@@ -188,9 +188,11 @@ class _TransactionListScreenState extends ConsumerState<TransactionListScreen> {
                     if (_filterQuery.isEmpty) return true;
                     final tTxn = t.transaction;
                     final txnNo = tTxn.transactionNo.toLowerCase();
+                    final partyName = t.party.name.toLowerCase();
                     final desc = tTxn.description?.toLowerCase() ?? '';
                     final ref = tTxn.referenceNo?.toLowerCase() ?? '';
                     return txnNo.contains(_filterQuery) ||
+                        partyName.contains(_filterQuery) ||
                         desc.contains(_filterQuery) ||
                         ref.contains(_filterQuery);
                   }).toList();

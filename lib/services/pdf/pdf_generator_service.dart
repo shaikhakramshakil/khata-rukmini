@@ -39,6 +39,20 @@ class PdfGeneratorService {
     return unit?.trim().isNotEmpty == true ? '$s ${unit!.trim()}' : s;
   }
 
+  /// Formats standardized invoice/receipt PDF file name: [InvoiceNo]_[CustomerName]_[Date].pdf
+  static String formatInvoiceFileName({
+    required String transactionNo,
+    required String partyName,
+    required DateTime date,
+  }) {
+    final cleanParty = partyName
+        .replaceAll(RegExp(r'[\\/:*?"<>|\s]+'), '_')
+        .replaceAll(RegExp(r'_+'), '_')
+        .trim();
+    final dateStr = DateFormat('dd-MM-yyyy').format(date);
+    return '${transactionNo}_${cleanParty}_$dateStr.pdf';
+  }
+
   /// Builds A4 Party Statement PDF
   static Future<Uint8List> generateStatementPdf({
     required ShopSetting shop,

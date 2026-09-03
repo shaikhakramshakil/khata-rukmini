@@ -22,6 +22,7 @@ class SettingsRepository {
     String? terms,
     String? appPin,
     String? backupDirectory,
+    String? invoicesDirectory,
   }) async {
     final s = await _db.getShopSettings();
     await _db.updateShopSettings(
@@ -48,6 +49,9 @@ class SettingsRepository {
             : const Value.absent(),
         backupDirectory: backupDirectory != null
             ? Value(backupDirectory.isEmpty ? null : backupDirectory)
+            : const Value.absent(),
+        invoicesDirectory: invoicesDirectory != null
+            ? Value(invoicesDirectory.isEmpty ? null : invoicesDirectory)
             : const Value.absent(),
       ),
     );

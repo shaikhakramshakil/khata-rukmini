@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/database/tables.dart';
@@ -210,53 +211,123 @@ class TransactionDetailDialog extends ConsumerWidget {
                       Row(
                         children: [
                           AppButton(
-                            label: isSale 
-                                ? 'Print Invoice' 
-                                : isPayment 
-                                    ? 'Print Receipt' 
-                                    : 'Print Voucher',
+                            label: 'Save PDF',
+                            variant: AppButtonVariant.secondary,
+                            icon: Icons.download_outlined,
+                            onPressed: () async {
+                              final shop = await ref
+                                  .read(settingsRepositoryProvider)
+                                  .getSettings();
+                              final partyBalance = await ref
+                                  .read(databaseProvider)
+                                  .getPartyCurrentBalance(party.id);
+
+                              final fileName =
+                                  PdfGeneratorService.formatInvoiceFileName(
+                                    transactionNo: txn.transactionNo,
+                                    partyName: party.name,
+                                    date: txn.date,
+                                  );
+
+                              Uint8List pdfBytes;
+                              if (isSale) {
+                                pdfBytes =
+                                    await PdfGeneratorService.generateInvoicePdf(
+                                      shop: shop,
+                                      details: details,
+                                      currentPartyBalance: partyBalance,
+                                    );
+                              } else {
+                                final prevBal = await txnRepo
+                                    .getBalanceBeforeTransaction(
+                                      party.id,
+                                      txn.id,
+                                    );
+                                pdfBytes =
+                                    await PdfGeneratorService.generateReceiptPdf(
+                                      shop: shop,
+                                      details: details,
+                                      previousBalance: prevBal,
+                                      newBalance: partyBalance,
+                                    );
+                              }
+
+                              final savedFile =
+                                  await PrintingService.savePdfDirectly(
+                                    pdfBytes,
+                                    fileName: fileName,
+                                    customTargetDirectory:
+                                        shop.invoicesDirectory,
+                                  );
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Saved: ${savedFile.path}',
+                                    ),
+                                    duration: const Duration(seconds: 4),
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                              }
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          AppButton(
+                            label: isSale
+                                ? 'Print Invoice'
+                                : isPayment
+                                ? 'Print Receipt'
+                                : 'Print Voucher',
                             variant: AppButtonVariant.secondary,
                             icon: Icons.print_outlined,
                             onPressed: () async {
-                                final shop = await ref
-                                    .read(settingsRepositoryProvider)
-                                    .getSettings();
-                                final partyBalance = await ref
-                                    .read(databaseProvider)
-                                    .getPartyCurrentBalance(party.id);
+                              final shop = await ref
+                                  .read(settingsRepositoryProvider)
+                                  .getSettings();
+                              final partyBalance = await ref
+                                  .read(databaseProvider)
+                                  .getPartyCurrentBalance(party.id);
 
-                                if (isSale) {
-                                  final pdfBytes =
-                                      await PdfGeneratorService.generateInvoicePdf(
-                                        shop: shop,
-                                        details: details,
-                                        currentPartyBalance: partyBalance,
-                                      );
-                                  await PrintingService.printPdfBytes(
-                                    pdfBytes,
-                                    docName: 'Invoice_${txn.transactionNo}.pdf',
+                              final fileName =
+                                  PdfGeneratorService.formatInvoiceFileName(
+                                    transactionNo: txn.transactionNo,
+                                    partyName: party.name,
+                                    date: txn.date,
                                   );
-                                } else {
-                                  final prevBal = await txnRepo
-                                      .getBalanceBeforeTransaction(
-                                        party.id,
-                                        txn.id,
-                                      );
-                                  final pdfBytes =
-                                      await PdfGeneratorService.generateReceiptPdf(
-                                        shop: shop,
-                                        details: details,
-                                        previousBalance: prevBal,
-                                        newBalance: partyBalance,
-                                      );
-                                  await PrintingService.printPdfBytes(
-                                    pdfBytes,
-                                    docName: 'Receipt_${txn.transactionNo}.pdf',
-                                  );
-                                }
-                              },
-                            ),
-                            const SizedBox(width: 8),
+
+                              if (isSale) {
+                                final pdfBytes =
+                                    await PdfGeneratorService.generateInvoicePdf(
+                                      shop: shop,
+                                      details: details,
+                                      currentPartyBalance: partyBalance,
+                                    );
+                                await PrintingService.printPdfBytes(
+                                  pdfBytes,
+                                  docName: fileName,
+                                );
+                              } else {
+                                final prevBal = await txnRepo
+                                    .getBalanceBeforeTransaction(
+                                      party.id,
+                                      txn.id,
+                                    );
+                                final pdfBytes =
+                                    await PdfGeneratorService.generateReceiptPdf(
+                                      shop: shop,
+                                      details: details,
+                                      previousBalance: prevBal,
+                                      newBalance: partyBalance,
+                                    );
+                                await PrintingService.printPdfBytes(
+                                  pdfBytes,
+                                  docName: fileName,
+                                );
+                              }
+                            },
+                          ),
+                          const SizedBox(width: 8),
                           AppButton(
                             label: 'Edit',
                             variant: AppButtonVariant.secondary,

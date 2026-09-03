@@ -2678,6 +2678,18 @@ class $ShopSettingsTable extends ShopSettings
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _invoicesDirectoryMeta = const VerificationMeta(
+    'invoicesDirectory',
+  );
+  @override
+  late final GeneratedColumn<String> invoicesDirectory =
+      GeneratedColumn<String>(
+        'invoices_directory',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _lastAutoBackupDateMeta =
       const VerificationMeta('lastAutoBackupDate');
   @override
@@ -2726,6 +2738,7 @@ class $ShopSettingsTable extends ShopSettings
     terms,
     currencySymbol,
     backupDirectory,
+    invoicesDirectory,
     lastAutoBackupDate,
     isFirstRunCompleted,
     appPin,
@@ -2823,6 +2836,15 @@ class $ShopSettingsTable extends ShopSettings
         ),
       );
     }
+    if (data.containsKey('invoices_directory')) {
+      context.handle(
+        _invoicesDirectoryMeta,
+        invoicesDirectory.isAcceptableOrUnknown(
+          data['invoices_directory']!,
+          _invoicesDirectoryMeta,
+        ),
+      );
+    }
     if (data.containsKey('last_auto_backup_date')) {
       context.handle(
         _lastAutoBackupDateMeta,
@@ -2904,6 +2926,10 @@ class $ShopSettingsTable extends ShopSettings
         DriftSqlType.string,
         data['${effectivePrefix}backup_directory'],
       ),
+      invoicesDirectory: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}invoices_directory'],
+      ),
       lastAutoBackupDate: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}last_auto_backup_date'],
@@ -2938,6 +2964,7 @@ class ShopSetting extends DataClass implements Insertable<ShopSetting> {
   final String terms;
   final String currencySymbol;
   final String? backupDirectory;
+  final String? invoicesDirectory;
   final String? lastAutoBackupDate;
   final bool isFirstRunCompleted;
   final String? appPin;
@@ -2954,6 +2981,7 @@ class ShopSetting extends DataClass implements Insertable<ShopSetting> {
     required this.terms,
     required this.currencySymbol,
     this.backupDirectory,
+    this.invoicesDirectory,
     this.lastAutoBackupDate,
     required this.isFirstRunCompleted,
     this.appPin,
@@ -2976,6 +3004,9 @@ class ShopSetting extends DataClass implements Insertable<ShopSetting> {
     map['currency_symbol'] = Variable<String>(currencySymbol);
     if (!nullToAbsent || backupDirectory != null) {
       map['backup_directory'] = Variable<String>(backupDirectory);
+    }
+    if (!nullToAbsent || invoicesDirectory != null) {
+      map['invoices_directory'] = Variable<String>(invoicesDirectory);
     }
     if (!nullToAbsent || lastAutoBackupDate != null) {
       map['last_auto_backup_date'] = Variable<String>(lastAutoBackupDate);
@@ -3005,6 +3036,9 @@ class ShopSetting extends DataClass implements Insertable<ShopSetting> {
       backupDirectory: backupDirectory == null && nullToAbsent
           ? const Value.absent()
           : Value(backupDirectory),
+      invoicesDirectory: invoicesDirectory == null && nullToAbsent
+          ? const Value.absent()
+          : Value(invoicesDirectory),
       lastAutoBackupDate: lastAutoBackupDate == null && nullToAbsent
           ? const Value.absent()
           : Value(lastAutoBackupDate),
@@ -3033,6 +3067,9 @@ class ShopSetting extends DataClass implements Insertable<ShopSetting> {
       terms: serializer.fromJson<String>(json['terms']),
       currencySymbol: serializer.fromJson<String>(json['currencySymbol']),
       backupDirectory: serializer.fromJson<String?>(json['backupDirectory']),
+      invoicesDirectory: serializer.fromJson<String?>(
+        json['invoicesDirectory'],
+      ),
       lastAutoBackupDate: serializer.fromJson<String?>(
         json['lastAutoBackupDate'],
       ),
@@ -3058,6 +3095,7 @@ class ShopSetting extends DataClass implements Insertable<ShopSetting> {
       'terms': serializer.toJson<String>(terms),
       'currencySymbol': serializer.toJson<String>(currencySymbol),
       'backupDirectory': serializer.toJson<String?>(backupDirectory),
+      'invoicesDirectory': serializer.toJson<String?>(invoicesDirectory),
       'lastAutoBackupDate': serializer.toJson<String?>(lastAutoBackupDate),
       'isFirstRunCompleted': serializer.toJson<bool>(isFirstRunCompleted),
       'appPin': serializer.toJson<String?>(appPin),
@@ -3077,6 +3115,7 @@ class ShopSetting extends DataClass implements Insertable<ShopSetting> {
     String? terms,
     String? currencySymbol,
     Value<String?> backupDirectory = const Value.absent(),
+    Value<String?> invoicesDirectory = const Value.absent(),
     Value<String?> lastAutoBackupDate = const Value.absent(),
     bool? isFirstRunCompleted,
     Value<String?> appPin = const Value.absent(),
@@ -3095,6 +3134,9 @@ class ShopSetting extends DataClass implements Insertable<ShopSetting> {
     backupDirectory: backupDirectory.present
         ? backupDirectory.value
         : this.backupDirectory,
+    invoicesDirectory: invoicesDirectory.present
+        ? invoicesDirectory.value
+        : this.invoicesDirectory,
     lastAutoBackupDate: lastAutoBackupDate.present
         ? lastAutoBackupDate.value
         : this.lastAutoBackupDate,
@@ -3123,6 +3165,9 @@ class ShopSetting extends DataClass implements Insertable<ShopSetting> {
       backupDirectory: data.backupDirectory.present
           ? data.backupDirectory.value
           : this.backupDirectory,
+      invoicesDirectory: data.invoicesDirectory.present
+          ? data.invoicesDirectory.value
+          : this.invoicesDirectory,
       lastAutoBackupDate: data.lastAutoBackupDate.present
           ? data.lastAutoBackupDate.value
           : this.lastAutoBackupDate,
@@ -3148,6 +3193,7 @@ class ShopSetting extends DataClass implements Insertable<ShopSetting> {
           ..write('terms: $terms, ')
           ..write('currencySymbol: $currencySymbol, ')
           ..write('backupDirectory: $backupDirectory, ')
+          ..write('invoicesDirectory: $invoicesDirectory, ')
           ..write('lastAutoBackupDate: $lastAutoBackupDate, ')
           ..write('isFirstRunCompleted: $isFirstRunCompleted, ')
           ..write('appPin: $appPin')
@@ -3169,6 +3215,7 @@ class ShopSetting extends DataClass implements Insertable<ShopSetting> {
     terms,
     currencySymbol,
     backupDirectory,
+    invoicesDirectory,
     lastAutoBackupDate,
     isFirstRunCompleted,
     appPin,
@@ -3189,6 +3236,7 @@ class ShopSetting extends DataClass implements Insertable<ShopSetting> {
           other.terms == this.terms &&
           other.currencySymbol == this.currencySymbol &&
           other.backupDirectory == this.backupDirectory &&
+          other.invoicesDirectory == this.invoicesDirectory &&
           other.lastAutoBackupDate == this.lastAutoBackupDate &&
           other.isFirstRunCompleted == this.isFirstRunCompleted &&
           other.appPin == this.appPin);
@@ -3207,6 +3255,7 @@ class ShopSettingsCompanion extends UpdateCompanion<ShopSetting> {
   final Value<String> terms;
   final Value<String> currencySymbol;
   final Value<String?> backupDirectory;
+  final Value<String?> invoicesDirectory;
   final Value<String?> lastAutoBackupDate;
   final Value<bool> isFirstRunCompleted;
   final Value<String?> appPin;
@@ -3223,6 +3272,7 @@ class ShopSettingsCompanion extends UpdateCompanion<ShopSetting> {
     this.terms = const Value.absent(),
     this.currencySymbol = const Value.absent(),
     this.backupDirectory = const Value.absent(),
+    this.invoicesDirectory = const Value.absent(),
     this.lastAutoBackupDate = const Value.absent(),
     this.isFirstRunCompleted = const Value.absent(),
     this.appPin = const Value.absent(),
@@ -3240,6 +3290,7 @@ class ShopSettingsCompanion extends UpdateCompanion<ShopSetting> {
     this.terms = const Value.absent(),
     this.currencySymbol = const Value.absent(),
     this.backupDirectory = const Value.absent(),
+    this.invoicesDirectory = const Value.absent(),
     this.lastAutoBackupDate = const Value.absent(),
     this.isFirstRunCompleted = const Value.absent(),
     this.appPin = const Value.absent(),
@@ -3257,6 +3308,7 @@ class ShopSettingsCompanion extends UpdateCompanion<ShopSetting> {
     Expression<String>? terms,
     Expression<String>? currencySymbol,
     Expression<String>? backupDirectory,
+    Expression<String>? invoicesDirectory,
     Expression<String>? lastAutoBackupDate,
     Expression<bool>? isFirstRunCompleted,
     Expression<String>? appPin,
@@ -3274,6 +3326,7 @@ class ShopSettingsCompanion extends UpdateCompanion<ShopSetting> {
       if (terms != null) 'terms': terms,
       if (currencySymbol != null) 'currency_symbol': currencySymbol,
       if (backupDirectory != null) 'backup_directory': backupDirectory,
+      if (invoicesDirectory != null) 'invoices_directory': invoicesDirectory,
       if (lastAutoBackupDate != null)
         'last_auto_backup_date': lastAutoBackupDate,
       if (isFirstRunCompleted != null)
@@ -3295,6 +3348,7 @@ class ShopSettingsCompanion extends UpdateCompanion<ShopSetting> {
     Value<String>? terms,
     Value<String>? currencySymbol,
     Value<String?>? backupDirectory,
+    Value<String?>? invoicesDirectory,
     Value<String?>? lastAutoBackupDate,
     Value<bool>? isFirstRunCompleted,
     Value<String?>? appPin,
@@ -3312,6 +3366,7 @@ class ShopSettingsCompanion extends UpdateCompanion<ShopSetting> {
       terms: terms ?? this.terms,
       currencySymbol: currencySymbol ?? this.currencySymbol,
       backupDirectory: backupDirectory ?? this.backupDirectory,
+      invoicesDirectory: invoicesDirectory ?? this.invoicesDirectory,
       lastAutoBackupDate: lastAutoBackupDate ?? this.lastAutoBackupDate,
       isFirstRunCompleted: isFirstRunCompleted ?? this.isFirstRunCompleted,
       appPin: appPin ?? this.appPin,
@@ -3357,6 +3412,9 @@ class ShopSettingsCompanion extends UpdateCompanion<ShopSetting> {
     if (backupDirectory.present) {
       map['backup_directory'] = Variable<String>(backupDirectory.value);
     }
+    if (invoicesDirectory.present) {
+      map['invoices_directory'] = Variable<String>(invoicesDirectory.value);
+    }
     if (lastAutoBackupDate.present) {
       map['last_auto_backup_date'] = Variable<String>(lastAutoBackupDate.value);
     }
@@ -3384,6 +3442,7 @@ class ShopSettingsCompanion extends UpdateCompanion<ShopSetting> {
           ..write('terms: $terms, ')
           ..write('currencySymbol: $currencySymbol, ')
           ..write('backupDirectory: $backupDirectory, ')
+          ..write('invoicesDirectory: $invoicesDirectory, ')
           ..write('lastAutoBackupDate: $lastAutoBackupDate, ')
           ..write('isFirstRunCompleted: $isFirstRunCompleted, ')
           ..write('appPin: $appPin')
@@ -5437,6 +5496,7 @@ typedef $$ShopSettingsTableCreateCompanionBuilder =
       Value<String> terms,
       Value<String> currencySymbol,
       Value<String?> backupDirectory,
+      Value<String?> invoicesDirectory,
       Value<String?> lastAutoBackupDate,
       Value<bool> isFirstRunCompleted,
       Value<String?> appPin,
@@ -5455,6 +5515,7 @@ typedef $$ShopSettingsTableUpdateCompanionBuilder =
       Value<String> terms,
       Value<String> currencySymbol,
       Value<String?> backupDirectory,
+      Value<String?> invoicesDirectory,
       Value<String?> lastAutoBackupDate,
       Value<bool> isFirstRunCompleted,
       Value<String?> appPin,
@@ -5526,6 +5587,11 @@ class $$ShopSettingsTableFilterComposer
 
   ColumnFilters<String> get backupDirectory => $composableBuilder(
     column: $table.backupDirectory,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get invoicesDirectory => $composableBuilder(
+    column: $table.invoicesDirectory,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -5614,6 +5680,11 @@ class $$ShopSettingsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get invoicesDirectory => $composableBuilder(
+    column: $table.invoicesDirectory,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get lastAutoBackupDate => $composableBuilder(
     column: $table.lastAutoBackupDate,
     builder: (column) => ColumnOrderings(column),
@@ -5683,6 +5754,11 @@ class $$ShopSettingsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get invoicesDirectory => $composableBuilder(
+    column: $table.invoicesDirectory,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get lastAutoBackupDate => $composableBuilder(
     column: $table.lastAutoBackupDate,
     builder: (column) => column,
@@ -5740,6 +5816,7 @@ class $$ShopSettingsTableTableManager
                 Value<String> terms = const Value.absent(),
                 Value<String> currencySymbol = const Value.absent(),
                 Value<String?> backupDirectory = const Value.absent(),
+                Value<String?> invoicesDirectory = const Value.absent(),
                 Value<String?> lastAutoBackupDate = const Value.absent(),
                 Value<bool> isFirstRunCompleted = const Value.absent(),
                 Value<String?> appPin = const Value.absent(),
@@ -5756,6 +5833,7 @@ class $$ShopSettingsTableTableManager
                 terms: terms,
                 currencySymbol: currencySymbol,
                 backupDirectory: backupDirectory,
+                invoicesDirectory: invoicesDirectory,
                 lastAutoBackupDate: lastAutoBackupDate,
                 isFirstRunCompleted: isFirstRunCompleted,
                 appPin: appPin,
@@ -5774,6 +5852,7 @@ class $$ShopSettingsTableTableManager
                 Value<String> terms = const Value.absent(),
                 Value<String> currencySymbol = const Value.absent(),
                 Value<String?> backupDirectory = const Value.absent(),
+                Value<String?> invoicesDirectory = const Value.absent(),
                 Value<String?> lastAutoBackupDate = const Value.absent(),
                 Value<bool> isFirstRunCompleted = const Value.absent(),
                 Value<String?> appPin = const Value.absent(),
@@ -5790,6 +5869,7 @@ class $$ShopSettingsTableTableManager
                 terms: terms,
                 currencySymbol: currencySymbol,
                 backupDirectory: backupDirectory,
+                invoicesDirectory: invoicesDirectory,
                 lastAutoBackupDate: lastAutoBackupDate,
                 isFirstRunCompleted: isFirstRunCompleted,
                 appPin: appPin,

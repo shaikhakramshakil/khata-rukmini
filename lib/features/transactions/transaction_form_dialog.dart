@@ -363,14 +363,28 @@ class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
             );
           }
 
-          final fileName = '${resultTxn.transaction.transactionNo}.pdf';
+          final fileName = PdfGeneratorService.formatInvoiceFileName(
+            transactionNo: resultTxn.transaction.transactionNo,
+            partyName: resultTxn.party.name,
+            date: resultTxn.transaction.date,
+          );
           if (printChoice == 'print') {
             await PrintingService.printPdfBytes(pdfBytes, docName: fileName);
           } else if (printChoice == 'save') {
-            await PrintingService.savePdfToFile(
+            final savedFile = await PrintingService.savePdfDirectly(
               pdfBytes,
-              suggestedFileName: fileName,
+              fileName: fileName,
+              customTargetDirectory: shop.invoicesDirectory,
             );
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Invoice saved: ${savedFile.path}'),
+                  duration: const Duration(seconds: 4),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            }
           }
         }
       }

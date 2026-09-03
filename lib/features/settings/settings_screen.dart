@@ -27,6 +27,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   final _txnPrefixController = TextEditingController();
   final _termsController = TextEditingController();
   String? _backupDirectory;
+  String? _invoicesDirectory;
   bool _isInitialized = false;
   bool _isSaving = false;
   bool _isCheckingUpdate = false;
@@ -58,6 +59,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _txnPrefixController.text = settings.txnPrefix;
     _termsController.text = settings.terms;
     _backupDirectory = settings.backupDirectory;
+    _invoicesDirectory = settings.invoicesDirectory;
     _isInitialized = true;
   }
 
@@ -173,6 +175,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         txnPrefix: _txnPrefixController.text,
         terms: _termsController.text,
         backupDirectory: _backupDirectory,
+        invoicesDirectory: _invoicesDirectory,
       );
 
       if (mounted) {
@@ -485,6 +488,50 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                       );
                                   if (result != null) {
                                     setState(() => _backupDirectory = result);
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Invoices & Receipts Location Card
+                      _buildSectionCard(
+                        title: 'INVOICES & RECEIPTS SAVE LOCATION',
+                        subtitle:
+                            'Dedicated folder where PDF invoices and receipts are automatically saved',
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  _invoicesDirectory ??
+                                      'Default (Documents/Khata_Invoices)',
+                                  style: AppTypography.codeMono,
+                                ),
+                              ),
+                              if (_invoicesDirectory != null) ...[
+                                TextButton(
+                                  onPressed: () =>
+                                      setState(() => _invoicesDirectory = null),
+                                  child: const Text('Reset to Default'),
+                                ),
+                                const SizedBox(width: 8),
+                              ],
+                              AppButton(
+                                label: 'Change Folder',
+                                variant: AppButtonVariant.secondary,
+                                onPressed: () async {
+                                  final result =
+                                      await file_picker
+                                          .FilePicker.getDirectoryPath(
+                                        dialogTitle:
+                                            'Select Invoices & Receipts Directory',
+                                      );
+                                  if (result != null) {
+                                    setState(() => _invoicesDirectory = result);
                                   }
                                 },
                               ),

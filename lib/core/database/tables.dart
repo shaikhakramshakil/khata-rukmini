@@ -118,6 +118,7 @@ class ShopSettings extends Table {
   )();
   TextColumn get currencySymbol => text().withDefault(const Constant('Rs'))();
   TextColumn get backupDirectory => text().nullable()();
+  TextColumn get invoicesDirectory => text().nullable()();
   TextColumn get lastAutoBackupDate => text().nullable()();
   BoolColumn get isFirstRunCompleted =>
       boolean().withDefault(const Constant(false))();
