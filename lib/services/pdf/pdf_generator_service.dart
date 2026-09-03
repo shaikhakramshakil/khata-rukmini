@@ -647,6 +647,14 @@ class PdfGeneratorService {
                         'Total Amount:',
                         formatPdfCurrency(details.transaction.amount),
                       ),
+                      if (details.transaction.interestRate != null &&
+                          details.transaction.interestRate! > 0) ...[
+                        pw.SizedBox(height: 3),
+                        _buildPdfKeyValue(
+                          'Agreed Interest:',
+                          '${details.transaction.interestRate}% / month',
+                        ),
+                      ],
                       pw.SizedBox(height: 3),
                       _buildPdfKeyValue(
                         'Account Balance:',
@@ -658,7 +666,9 @@ class PdfGeneratorService {
               ],
             ),
 
-            if (shop.terms.isNotEmpty) ...[
+            if (shop.terms.isNotEmpty ||
+                (details.transaction.interestRate != null &&
+                    details.transaction.interestRate! > 0)) ...[
               pw.SizedBox(height: 14),
               pw.Text(
                 'Terms & Conditions:',
@@ -669,10 +679,23 @@ class PdfGeneratorService {
                 ),
               ),
               pw.SizedBox(height: 2),
-              pw.Text(
-                shop.terms,
-                style: const pw.TextStyle(fontSize: 8, color: muteColor),
-              ),
+              if (details.transaction.interestRate != null &&
+                  details.transaction.interestRate! > 0) ...[
+                pw.Text(
+                  '• Agreed interest rate of ${details.transaction.interestRate}% per month applicable on pending balance.',
+                  style: pw.TextStyle(
+                    fontSize: 8,
+                    fontWeight: pw.FontWeight.bold,
+                    color: inkColor,
+                  ),
+                ),
+                pw.SizedBox(height: 1),
+              ],
+              if (shop.terms.isNotEmpty)
+                pw.Text(
+                  shop.terms,
+                  style: const pw.TextStyle(fontSize: 8, color: muteColor),
+                ),
             ],
 
             pw.SizedBox(height: 24),

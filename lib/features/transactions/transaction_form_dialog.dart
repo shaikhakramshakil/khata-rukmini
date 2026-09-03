@@ -458,7 +458,25 @@ class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
                           onChanged:
                               isEditing || widget.preselectedPartyId != null
                               ? null
-                              : (val) => setState(() => _selectedPartyId = val),
+                              : (val) {
+                                  setState(() {
+                                    _selectedPartyId = val;
+                                    if (val != null &&
+                                        _interestRateController.text.isEmpty) {
+                                      final party = parties
+                                          .where((p) => p.party.id == val)
+                                          .firstOrNull
+                                          ?.party;
+                                      if (party?.interestRate != null) {
+                                        final rate = party!.interestRate!;
+                                        _interestRateController.text =
+                                            rate.truncateToDouble() == rate
+                                                ? rate.toInt().toString()
+                                                : rate.toString();
+                                      }
+                                    }
+                                  });
+                                },
                           validator: (v) =>
                               v == null ? 'Please select a party' : null,
                         ),
@@ -637,19 +655,23 @@ class _TransactionFormDialogState extends ConsumerState<TransactionFormDialog> {
                   ],
                 ),
 
-                // Interest Rate Field (for Loan Given or Interest Charged)
-                if (_selectedType == TransactionType.loanGiven ||
+                // Interest Rate Field (for Sale, Loan Given, or Interest Charged)
+                if (_selectedType == TransactionType.sale ||
+                    _selectedType == TransactionType.loanGiven ||
                     _selectedType == TransactionType.interestCharged) ...[
                   const SizedBox(height: 14),
                   TextFormField(
                     controller: _interestRateController,
                     keyboardType: const TextInputType.numberWithOptions(
-                      decimal: false,
+                      decimal: true,
                     ),
-                    decoration: const InputDecoration(
-                      labelText: 'Interest Rate (% / month)',
+                    decoration: InputDecoration(
+                      labelText: _selectedType == TransactionType.sale
+                          ? 'Agreed Interest Rate (% / month on pending due, optional)'
+                          : 'Interest Rate (% / month)',
                       hintText: 'e.g. 2.0 (% per month)',
                       suffixText: '% / mo',
+                      prefixIcon: const Icon(Icons.percent, size: 18),
                     ),
                     validator: (v) {
                       if (v != null && v.trim().isNotEmpty) {

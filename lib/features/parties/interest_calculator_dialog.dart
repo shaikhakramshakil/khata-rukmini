@@ -14,8 +14,18 @@ import '../../services/interest/interest_calculator_service.dart';
 class InterestCalculatorDialog extends ConsumerStatefulWidget {
   final Party? party;
   final double? currentBalance;
+  final DateTime? initialFromDate;
+  final double? initialRate;
+  final double? initialPrincipal;
 
-  const InterestCalculatorDialog({super.key, this.party, this.currentBalance});
+  const InterestCalculatorDialog({
+    super.key,
+    this.party,
+    this.currentBalance,
+    this.initialFromDate,
+    this.initialRate,
+    this.initialPrincipal,
+  });
 
   @override
   ConsumerState<InterestCalculatorDialog> createState() =>
@@ -40,22 +50,26 @@ class _InterestCalculatorDialogState
     _selectedParty = widget.party;
     _selectedBalance = widget.currentBalance;
 
-    final initialPrincipal = (_selectedBalance != null && _selectedBalance! > 0)
-        ? _selectedBalance!
-        : 10000.0;
+    final principalVal = widget.initialPrincipal ??
+        ((_selectedBalance != null && _selectedBalance! > 0)
+            ? _selectedBalance!
+            : 10000.0);
     _principalController = TextEditingController(
-      text: initialPrincipal.toStringAsFixed(0),
+      text: principalVal.toStringAsFixed(
+        principalVal.truncateToDouble() == principalVal ? 0 : 2,
+      ),
     );
 
-    final initialRate = _selectedParty?.interestRate ?? 2.0;
+    final rateVal = widget.initialRate ?? _selectedParty?.interestRate ?? 2.0;
     _rateController = TextEditingController(
-      text: initialRate.toStringAsFixed(
-        initialRate.truncateToDouble() == initialRate ? 0 : 2,
+      text: rateVal.toStringAsFixed(
+        rateVal.truncateToDouble() == rateVal ? 0 : 2,
       ),
     );
 
     _toDate = DateTime.now();
-    _fromDate = DateTime(_toDate.year, _toDate.month - 1, _toDate.day);
+    _fromDate = widget.initialFromDate ??
+        DateTime(_toDate.year, _toDate.month - 1, _toDate.day);
   }
 
   @override

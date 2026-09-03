@@ -10,6 +10,7 @@ import '../../core/widgets/app_button.dart';
 import '../../repositories/transaction_repository.dart';
 import '../../services/pdf/pdf_generator_service.dart';
 import '../../services/pdf/printing_service.dart';
+import '../parties/interest_calculator_dialog.dart';
 import 'transaction_form_dialog.dart';
 
 class TransactionDetailDialog extends ConsumerWidget {
@@ -59,6 +60,7 @@ class TransactionDetailDialog extends ConsumerWidget {
         final isPayment =
             txn.type == TransactionType.paymentReceived.name ||
             txn.type == TransactionType.paymentMade.name;
+        final isDebit = txn.debit > 0;
 
         return Dialog(
           child: ConstrainedBox(
@@ -327,6 +329,27 @@ class TransactionDetailDialog extends ConsumerWidget {
                               }
                             },
                           ),
+                          if (isSale || isDebit) ...[
+                            const SizedBox(width: 8),
+                            AppButton(
+                              label: 'Calculate Interest',
+                              variant: AppButtonVariant.secondary,
+                              icon: Icons.calculate_outlined,
+                              onPressed: () async {
+                                await showDialog(
+                                  context: context,
+                                  builder: (ctx) => InterestCalculatorDialog(
+                                    party: party,
+                                    initialPrincipal: txn.amount,
+                                    initialFromDate: txn.date,
+                                    initialRate: txn.interestRate ??
+                                        party.interestRate ??
+                                        2.0,
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
                           const SizedBox(width: 8),
                           AppButton(
                             label: 'Edit',
